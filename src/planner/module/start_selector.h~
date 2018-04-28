@@ -1,0 +1,72 @@
+#include "planning_data_type.h"
+#include <vector>
+
+struct sn_state{
+    state s;
+    state n;
+}
+
+class StartSelector{
+    public:
+	StartSelector();
+	~StartSelector();
+
+    public:
+	sn_state SelectStartNode( 
+		std::vector<double> prev_path_x, // x positions of nodes in a previous path
+		std::vector<double> prev_path_y, // y positions of nodes in a previous path
+		std::vector<double> ego_pose,	// x, y, yaw, spd_x, acc_x
+		double lookahead );
+
+    private:
+	const double THRESHOLD_VALID_OFFSET = 2.0;
+
+    private:
+	bool IsValidTrajectory( std::vector<double> path_x, std::vector<double> path_y );
+	bool IsOnTrajectory( std::vector<double> path_x, std::vector<double> path_y,
+		double ego_pose_x, double ego_pose_y );
+	sn_state FindLookaheadNode( std::vector<double> path_x, std::vector<double> path_y,
+		std::vector<double> ego_pose, double lookahead );	
+	sn_state GetEgoState( std::vector<double> ego_pose );
+
+	std::vector<double> FindClosestNode( std::vector<double> path_x, std::vector<double> path_y,
+		std::vector<double> ego_pose );
+
+}
+
+void StartSelector::SelectStartNode(
+		std::vector<double> prev_path_x, 
+		std::vector<double> prev_path_y,
+		std::vector<double> ego_pose,
+		double lookahead ){
+    sn_state start_node;
+
+    bool is_valid_trj = IsValidTrajectory( prev_path_x, prev_path_y );
+    bool is_on_trj = IsOnTrajectory( prev_path_x, prev_path_y, ego_pose );
+
+    if( (is_valid_trj == true ) && 
+	    (is_on_trj == true) ){
+	start_node = FindLookaheadNode( prev_path_x, prev_path_y, ego_pose, lookahead );
+    }
+    else{
+	start_node = GetEgoState( ego_pose );
+    }
+    return start_node;
+}
+
+bool StartSelector::IsValidTrajectory( std::vector<double> path_x, std::vector<double> path_y ){
+    int x_size = path_x.size();
+    int y_size = path_y.size();
+    if( (x_size == y_size ) 
+	    && ( x_size != 0 ) ){
+	return true;
+    }
+    else{
+	return false;
+    }
+}
+
+bool StartSelector::IsOnTrajectory( std::vector<double> path_x, std::vector<double> path_y,
+	double ego_pose_x, double ego_pose_y){
+        
+}

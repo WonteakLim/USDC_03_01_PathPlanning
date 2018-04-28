@@ -1,0 +1,82 @@
+#pragma once
+#include <vector>
+
+typedef std::vector<double> state;
+
+class candidate{
+    public:
+	candidate() {}
+	~candidate() {}
+
+    public:
+	virtual double GetMaxSpd() {return 0.0;}
+	virtual double GetMaxAcc() {return 0.0;}
+	virtual double GetMaxJerk() {return 0.0;}
+	virtual double GetIntegSpd() {return 0.0;}
+	virtual double GetIntegAcc() {return 0.0;}
+	virtual double GetIntegJerk() {return 0.0;}
+	virtual double GetT() {return 0.0;}
+	virtual state GetState(double t) { return {0.0, 0.0, 0.0};}
+	virtual bool IsFeasible() { return false;}
+};
+
+struct trajectory_weight{
+
+};
+
+class trajectory{
+    public:
+	trajectory( candidate s_candidate, candidate n_candidate,
+	       trajectory_weight weight	);
+	~trajectory() {}
+
+    private:
+	candidate s_trajectory_;
+	candidate n_trajectory_;
+
+	double time_horizon_=-1.0;
+	double cost_ = 0.0;
+
+    private:
+	double	    CalTimeHorizon( candidate s, candidate n );
+	double	    CalCost( trajectory_weight weight );
+
+	// =========================
+	// External interface
+    public:
+	inline double		    GetCost() { return cost_; }
+	inline double		    GetTimeHorizon() { return time_horizon_; }
+	std::vector<state>	    GetNode(double t);
+};
+
+trajectory::trajectory( candidate s_candidate, candidate n_candidate,
+       trajectory_weight weight	)
+:s_trajectory_( s_candidate ),
+n_trajectory_( n_candidate ){
+    time_horizon_ = CalTimeHorizon( s_candidate, n_candidate );
+    cost_ = CalCost( weight );
+}
+
+double trajectory::CalCost(trajectory_weight weight){
+    return 0.0;
+}
+
+double trajectory::CalTimeHorizon( candidate s, candidate n ){
+    double t_s = s_trajectory_.GetT();
+    double t_n = n_trajectory_.GetT();
+    double max_t = 0.0;
+    if( t_s > t_n ) max_t = t_s;
+    else	    max_t = t_n;
+    return max_t; 
+}
+
+// ================================
+// External interface
+std::vector<state> trajectory::GetNode( double t ){
+    state s_state = s_trajectory_.GetState( t );
+    state n_state = n_trajectory_.GetState( t );
+
+    return {s_state, n_state };
+}
+
+

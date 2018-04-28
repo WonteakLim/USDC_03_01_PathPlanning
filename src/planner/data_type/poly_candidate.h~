@@ -1,0 +1,57 @@
+#pragma once
+#include "planning_data_type.h"
+
+class poly_candidate : public candidate{
+    public:
+	poly_candidate() {}
+	~poly_candidate() {}
+
+	// virtual function
+    public:
+	double GetMaxSpd();
+	double GetMaxAcc();
+	double GetMaxJerk();
+	double GetIntegSpd();
+	double GetIntegAcc();
+	double GetIntegJerk();
+	double GetT();
+	state	GetState( double t );
+	bool IsFeasible();
+};
+
+double poly_candidate::GetMaxSpd(){
+    return 0.0;
+}
+
+double poly_candidate::GetMaxAcc(){
+    return 0.0;
+}
+
+double poly_candidate::GetMaxJerk(){
+    return 0.0;
+}
+
+double poly_candidate::GetIntegSpd(){
+    return 0.0;
+}
+
+double poly_candidate::GetIntegAcc(){
+    return 0.0;
+}
+
+double poly_candidate::GetIntegJerk(){
+    return 0.0;
+}
+
+double poly_candidate::GetT(){
+    return 0.0;
+}
+
+state poly_candidate::GetState( double t ){
+    return {0.0, 0.0, 0.0};
+}
+
+bool poly_candidate::IsFeasible(){
+    return true;
+}
+
