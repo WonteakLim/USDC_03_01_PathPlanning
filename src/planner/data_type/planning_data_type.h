@@ -5,6 +5,16 @@
 
 typedef std::vector<double> state;
 
+struct xy_state{
+    state x;
+    state y;
+};
+
+struct sn_state{
+    state s;
+    state n;
+};
+
 enum feasible_status{
     UNKNOWN = 0,
     FEASIBLE,
@@ -33,6 +43,9 @@ class candidate{
 	// predefined functions
     public:
 	int GetLaneIndex() { return lane_index_; }
+
+    protected:
+	void SetLaneIndex(int idx) { lane_index_ = idx; }
 
     protected:
 	double max_spd_ = -1.0;

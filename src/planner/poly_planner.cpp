@@ -12,17 +12,10 @@ void poly_planner::Run( Map* map,
     sn_state start_sn = SelStartState(map, path_dt,
 					path_x, path_y,
 					ego_pose, lookahead_time);
-    // Test
 
-    state start = {0, 0, 0};
-    state end = {1, 0, 0};
-    poly_candidate variant( start, end, 10.0);
+    BuildCandidate(start_sn);
 
-    std::cout << "max acc: " << variant.GetMaxAcc() << std::endl;
-    std::cout << "min acc: " << variant.GetMinAcc() << std::endl;
-    std::cout << "max jerk: " << variant.GetMaxJerk() << std::endl;
-    std::cout << "integral jerk: " << variant.GetIntegJerk() << std::endl;
-    std::cout << "continuation: " << variant.GetT() << std::endl;
+
 }
 
 sn_state poly_planner::SelStartState(Map* map,
@@ -40,8 +33,10 @@ sn_state poly_planner::SelStartState(Map* map,
 	    lookahead_time);
 }
 
-void poly_planner::BuildCandidate(){
-
+void poly_planner::BuildCandidate(sn_state start_state){
+    candidate_set s_candidates, n_candidates;
+    candidate_builder_.BuildVariants( start_state.s, start_state.n,
+		   s_candidates, n_candidates ); 
 }
 
 trajectory poly_planner::SelOptTrajectory(){

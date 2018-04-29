@@ -6,7 +6,7 @@
 
 class poly_candidate : public candidate{
     public:
-	poly_candidate(state start, state end, double T);
+	poly_candidate(int lane_idx, state start, state end, double T);
 	~poly_candidate();
 
 	// virtual function

@@ -25,10 +25,11 @@ class poly_planner{
 		std::vector<double> path_y,
 		std::vector<double> ego_pose,
 		double lookahead_time);
-	void BuildCandidate();
+	void BuildCandidate(
+		sn_state start_state);
 	trajectory SelOptTrajectory();
 
     private:
 	start_selector start_selector_;
-	candidate_builder candidate_;
+	candidate_builder candidate_builder_;
 };

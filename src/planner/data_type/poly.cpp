@@ -14,6 +14,26 @@ Eigen::VectorXd solve_poly(vector<double> state_0,
 
 	Eigen::VectorXd result(6);
 
+	// Quadratic polynomial
+	if( state_1.size() == 2 ){
+	    Eigen::Matrix2d A;
+	    A <<    3*t2, 4*t3,
+		    6*t, 12*t2;
+	    Eigen::Vector2d b;
+	    b <<    state_1[0] - (coeff1 + state_0[2]*t),
+		    state_1[1] - state_0[2];
+
+	    auto Ai = A.inverse();
+	    auto coeffs = Ai*b;
+
+	    result <<
+		    coeff0,
+		    coeff1,
+		    coeff2,
+		    coeffs[0],
+		    coeffs[1],
+		    0;
+	}
 	
 	// Quintic polynomial
 	if (state_1.size() == 3)

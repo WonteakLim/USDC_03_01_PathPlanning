@@ -3,16 +3,6 @@
 #include "../utils/spline.h"
 #include <vector>
 
-struct xy_state{
-    state x;
-    state y;
-};
-
-struct sn_state{
-    state s;
-    state n;
-};
-
 // ==================================
 // class: discrete_trajectory
 class discrete_trajectory{
