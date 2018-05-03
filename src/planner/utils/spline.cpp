@@ -557,3 +557,16 @@ double Map::SubstractS(double minuend, double subtrahend) {
 	}
 	return dist;
 }
+
+int Map::GetLaneIndexN( double n ){
+    return (int) (n / lane_width_ );
+}
+
+int Map::GetLaneIndexXY( double x, double y){
+    std::vector<double> sn = ToFrenet( x,y );
+    return GetLaneIndexN( sn[1] );
+}
+
+double Map::GetOffset( int lane_idx ){
+    return ( lane_width_/2 + lane_idx*lane_width_ );
+}

@@ -27,10 +27,8 @@ class poly_candidate : public candidate{
 
     private:
 	polynomial poly_;
-
-
-
 };
 
+typedef std::vector<poly_candidate> poly_candidate_set;
 
 

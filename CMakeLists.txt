@@ -30,6 +30,8 @@ add_executable(path_planning
 	src/planner/data_type/poly_candidate.cpp
 	src/planner/module/start_selector.cpp
 	src/planner/module/candidate_builder.cpp
+	src/planner/module/optimal_selector.cpp
+	src/planner/module/object_manager.cpp
 	src/planner/poly_planner.cpp)
 
 

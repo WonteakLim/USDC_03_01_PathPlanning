@@ -108,8 +108,8 @@ struct Map
 {
 	public:
 		double	max_s_;
-  		double	lane_width_;
-  		int		lanes_;
+  		double	lane_width_=4.0;
+  		int	lanes_ = 4;
 	private:
   		spline x_s_;
   		spline y_s_;
@@ -146,6 +146,13 @@ struct Map
   		double GetSlope(double s);
   		double GetCurvature(double s);
   		inline double GetTotalLength() {return total_length_;};
+
+	public:
+		int GetLaneIndexXY( double x, double y );
+		int GetLaneIndexN( double n );
+		double GetOffset( int lane_idx );
+		int GetNumLane() { return lanes_; }
+		double GetLaneWidth() { return lane_width_; }
 };
 
 #endif /* SPLINE_H */

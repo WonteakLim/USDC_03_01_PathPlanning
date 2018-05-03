@@ -57,33 +57,53 @@ class candidate{
 	feasible_status is_feasible = UNKNOWN;
 };
 
-struct trajectory_weight{
+typedef std::vector<candidate> candidate_set;
+typedef std::vector<candidate*> candidate_p_set;
 
+struct trajectory_weight{
+    double s_comfort;
+    double n_comfort;
+    double s_desired_spd;
 };
 
 class trajectory{
     public:
-	trajectory( candidate s_candidate, candidate n_candidate,
+	trajectory( int idx, 
+		candidate* s_candidate, candidate* n_candidate,
+		double desired_spd,
 	       trajectory_weight weight	);
 	~trajectory() {}
 
     private:
-	candidate s_trajectory_;
-	candidate n_trajectory_;
+	candidate* s_trajectory_;
+	candidate* n_trajectory_;
 
+	int idx_=-1;
 	double time_horizon_=-1.0;
 	double cost_ = 0.0;
+	double desired_spd_=0.0;
 
     private:
-	double	    CalTimeHorizon( candidate s, candidate n );
+	double	    CalTimeHorizon( );
 	double	    CalCost( trajectory_weight weight );
 
 	// =========================
 	// External interface
     public:
+	inline int		    GetIdx() { return idx_; }
 	inline double		    GetCost() { return cost_; }
 	inline double		    GetTimeHorizon() { return time_horizon_; }
 	std::vector<state>	    GetNode(double t);
+	std::vector<double>	    GetMaxSpd();
+	int			    GetDiscretePathSN( double dt, double T,
+					    std::vector<double>& path_s, std::vector<double>& path_n );
+
+    public:
+	bool operator < (const trajectory& trj ) const{
+	    double cost_1 = this->cost_;
+	    double cost_2 = trj.cost_;
+	    return cost_1 < cost_2;
+	}
 };
 
 

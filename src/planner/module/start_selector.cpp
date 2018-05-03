@@ -29,6 +29,8 @@ bool discrete_trajectory::IsOnTrajectory(double pose_x, double pose_y){
     std::vector<double> closest_node_xy = FindClosestNode( pose_x, pose_y );
     // Get a distance
     double dist = GetDistance( pose_x, pose_y, closest_node_xy[0], closest_node_xy[1] );
+    std::cout << "Closet point: " << closest_node_xy[0] << ", " << closest_node_xy[1] << std::endl;
+    std::cout << "Distance: " << dist << "!!!!!" << std::endl;
     // Determine if the offset is valid or not
     if( dist > THRESHOLD_VALID_OFFSET )
 	return false;
@@ -102,7 +104,7 @@ xy_state discrete_trajectory::GetNode( int idx ){
 
 double discrete_trajectory::GetDistance( double x1, double y1, double x2, double y2 ){
     double dx = x1 - x2;
-    double dy = y1 = y2;
+    double dy = y1 - y2;
     return sqrt( dx*dx + dy*dy );
 }
 
