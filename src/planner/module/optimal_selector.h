@@ -9,11 +9,12 @@ class optimal_selector{
 	~optimal_selector();
 
     public:
-	trajectory Optimization( candidate_p_set* s_candidate,
+	bool Optimization( candidate_p_set* s_candidate,
 				 candidate_p_set* n_candidate,
 				 double desired_spd,
 				 planning_object::object_manager* objects,
-				 trajectory_weight weight );
+				 trajectory_weight weight,
+				 trajectory& opt_trajectory);
 
     private:
 	trajectory_set SN2Trajectory(   candidate_p_set* s_candidate,

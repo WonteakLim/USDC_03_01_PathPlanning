@@ -312,9 +312,7 @@ std::vector<double> spline::derivative (double x, int up_to) const
 
 Map::Map(std::vector<double> x,
 	std::vector<double> y )
-:max_s_(300.0),
-lane_width_(3.0),
-lanes_(2){
+:max_s_(300.0){
 
 
     std::vector<double> sx, sy, ss, dsx, dsy;
@@ -366,9 +364,7 @@ Map::Map(std::vector<double> sx,
 	std::vector<double> d_sx,
 	std::vector<double> d_sy
 )
-:max_s_(300.0),
-lane_width_(3.0),
-lanes_(2)
+:max_s_(300.0)
 {
 	for (int i = 0; i < sx.size(); i++)
 	{

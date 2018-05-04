@@ -17,12 +17,14 @@ desired_spd_(desired_spd){
 double trajectory::CalCost(trajectory_weight weight){
     double s_jerk = s_trajectory_->GetIntegJerk();
     double n_jerk = n_trajectory_->GetIntegJerk();
-    double s_diff_spd = abs( s_trajectory_->GetState( s_trajectory_->GetT())[1] - desired_spd_);
+    double s_diff_dist = abs(  s_trajectory_->GetState( s_trajectory_->GetT())[0] - s_trajectory_->GetDesiredDist());
+    double s_diff_spd = abs( s_trajectory_->GetState( s_trajectory_->GetT())[1] - s_trajectory_->GetDesiredSpd());
     
-    double cost = weight.s_comfort * s_jerk
+    double cost = weight.t * s_trajectory_->GetT()
+		+ weight.s_comfort * s_jerk
 	    	+ weight.n_comfort * n_jerk
-		+ weight.s_desired_spd * s_diff_spd;
-    std::cout << "id/spd/spd_r/cost: " << idx_ << "/" << s_trajectory_->GetState(s_trajectory_->GetT())[1] << "/" << desired_spd_ << "/" << cost << std::endl;
+		+ s_trajectory_->GetPreWeightDist() * weight.s_desired_dist * s_diff_dist * s_diff_dist
+		+ s_trajectory_->GetPreWeightSpd() * weight.s_desired_spd * s_diff_spd * s_diff_spd;
     return cost;
 }
 

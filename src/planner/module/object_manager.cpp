@@ -21,6 +21,9 @@ void object_manager::AddObjects( std::vector<std::vector<double>> objects ){
 	planning_object.s = objects[i][5];
 	planning_object.n = objects[i][6];
 
+	planning_object.length = 4.0;
+	planning_object.width = 2.0;
+
 	int lane_id = AssociateLane( planning_object.n );
 	planning_object.lane_id = lane_id;
 	planning_object.id = i;
@@ -53,15 +56,12 @@ int object_manager::AssociateLane( double n ){
 obj_predict_t object_manager::PredictMotion( obj_state_t state, double dt, double T){
     obj_predict_t predicted_trajectory;
     int num_steps = (int)(T / dt);
-    std::cout << "prediction" << std::endl;
     for( int i=0; i<num_steps ; i++){
 	double time = dt * i;
 	double s = state.s + state.spd * time;
 	double n = state.n;
-	std::cout << "sn to xy" << std::endl;
 	std::vector<double> xy = map_.ToCartesian( s, n );
 	obj_stateT_t stateT;
-	std::cout << "save" << std::endl;
 	stateT.time = time;
 	stateT.x = xy[0];
 	stateT.y = xy[1];
@@ -72,18 +72,17 @@ obj_predict_t object_manager::PredictMotion( obj_state_t state, double dt, doubl
 
 	predicted_trajectory.push_back( stateT );
     }
-    std::cout << " end of prediction" << std::endl;
     return predicted_trajectory;
 }
 
 planning_object_list_t object_manager::GetWatchable( double s, double n ){
-    const double max_view_dist = 200.0;
+    const double max_view_dist = 100.0;
     const int max_view_lane = 1;
 
     int lane_idx = map_.GetLaneIndexN( n );
 
-    double s_max = max_view_dist;
-    double s_min = -max_view_dist;
+    double s_max = s + max_view_dist;
+    double s_min = s - max_view_dist;
     double n_min = map_.GetOffset( lane_idx - 1 ) - map_.GetLaneWidth()/2;
     if( n_min < 0 ) n_min = 0.0;
     double n_max = map_.GetOffset( lane_idx + 1 ) + map_.GetLaneWidth()/2;    
@@ -95,7 +94,6 @@ planning_object_list_t object_manager::ObjectsInRange( double s_min, double s_ma
     planning_object_list_t in_objects;
     for( int i =0; i<object_list_.size() ; i++){
 	planning_object_t obj = object_list_[i];
-	std::cout << "InRange: " << obj.s << " / " << obj.n << std::endl;
 	if( ( obj.s > s_min ) &&
 		(obj.s < s_max ) &&
 		(obj.n > n_min ) &&
@@ -181,22 +179,23 @@ bool object_manager::IsCollision( double dt,
 
     // predict future motino of watchable objects and collision check
     bool is_collision = false;
-    std::cout << "watchable objects: " << watchable.size() << std::endl;
     for( int i=0; i< watchable.size() ; i++){
 	if( watchable[i].prediction_dt_ != dt ){
 	    watchable[i].trajectory = PredictMotion( watchable[i], dt, T);
-
-	    std::vector<double> path_s;
-	    std::vector<double> path_n;
-	    for( int j=0; j<watchable[i].trajectory.size() ; j++){
-		path_s.push_back( watchable[i].trajectory[j].s);
-		path_n.push_back( watchable[i].trajectory[j].n);
-	    }
-	    watchable[i].collision_checker_ = path_planning::AABBTree::Build( path_s, path_n, watchable[i].length, watchable[i].width);
 	}
+
+	std::vector<double> path_s;
+	std::vector<double> path_n;
+	for( int j=0; j<watchable[i].trajectory.size() ; j++){
+	    path_s.push_back( watchable[i].trajectory[j].s);
+	    path_n.push_back( watchable[i].trajectory[j].n);
+	}
+	watchable[i].collision_checker_ = path_planning::AABBTree::Build( path_s, path_n, watchable[i].length, watchable[i].width);
+	
 	int check = watchable[i].collision_checker_.CollisionIndex( trj_s, trj_n, length, width );
-	if( check == -1 ){
+	if( check != -1 ){
 	    is_collision = true;
+	    break;
 	}
     }
     return is_collision;

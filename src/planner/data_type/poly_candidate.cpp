@@ -1,12 +1,14 @@
 #include "poly_candidate.h"
 #include <iostream>
 
-poly_candidate::poly_candidate(int lane_idx, state start, state end, double T){
+poly_candidate::poly_candidate(int lane_idx, state start, state end, state desired, double T){
     poly_ = solve_poly( start, end, T);
     start_state_ = start;
     end_state_ = end;
     continuation_time_ = T;
     SetLaneIndex( lane_idx );
+    desired_dist_ = desired[0];
+    desired_spd_ = desired[1];
 }
 
 poly_candidate::~poly_candidate(){

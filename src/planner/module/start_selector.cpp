@@ -29,8 +29,6 @@ bool discrete_trajectory::IsOnTrajectory(double pose_x, double pose_y){
     std::vector<double> closest_node_xy = FindClosestNode( pose_x, pose_y );
     // Get a distance
     double dist = GetDistance( pose_x, pose_y, closest_node_xy[0], closest_node_xy[1] );
-    std::cout << "Closet point: " << closest_node_xy[0] << ", " << closest_node_xy[1] << std::endl;
-    std::cout << "Distance: " << dist << "!!!!!" << std::endl;
     // Determine if the offset is valid or not
     if( dist > THRESHOLD_VALID_OFFSET )
 	return false;
@@ -157,15 +155,12 @@ sn_state start_selector::SelectStartNode(
 	// from the previous trajectory
 	start_node = FindLookaheadNode( map, &prev_trj,
 		ego_x, ego_y, ego_yaw, lookahead );
-	std::cout << "start from the previous path" << std::endl;
     }
     else{
 	// from ego position
 	state x = {ego_x, ego_spd*cos(ego_yaw), ego_acc*cos(ego_yaw)};
 	state y = {ego_y, ego_spd*sin(ego_yaw), ego_acc*sin(ego_yaw)};
 	start_node = ConvXY2SN( map, {x,y} );
-	std::cout << "start from ego position" << std::endl;
-	std::cout << "ego pos(x/y): " << ego_x << "/" << ego_y << std::endl;
     }
     return start_node;
 }
@@ -193,7 +188,6 @@ sn_state start_selector::FindLookaheadNode( Map* map,
 }
 
 sn_state start_selector::ConvXY2SN( Map* map, xy_state xy){
-    std::cout << "conv (x/y): " << xy.x[0] << "/" << xy.y[0] << std::endl;
     std::vector<double> sn = map->ToFrenet( xy.x[0], xy.y[0] );
     double slop = map->GetSlope( sn[0] );
     double v_s = xy.x[1] * cos( slop ) + xy.y[1] * sin( slop ) ;
@@ -203,7 +197,6 @@ sn_state start_selector::ConvXY2SN( Map* map, xy_state xy){
 
     state s_state = { sn[0], v_s, a_s };
     state n_state = { sn[1], v_n, a_n };
-    std::cout << "conv (s/n): " << s_state[0] << "/" << n_state[0] << std::endl;
 
     return { s_state, n_state };
 }

@@ -44,9 +44,10 @@ void poly_planner::Run( Map* map,
     }
 
     // select optimal trajectory
-    trajectory opt_trajectory = SelOptTrajectory( &s_candidates, &n_candidates, desired_spd, &object_list );
-
-    UpdateTrajectory( map, opt_trajectory, start_idx, path_dt );
+    trajectory opt_trajectory;
+    if( SelOptTrajectory( &s_candidates, &n_candidates, desired_spd, &object_list, opt_trajectory ) ){
+	UpdateTrajectory( map, opt_trajectory, start_idx, path_dt );
+    }
 }
 
 sn_state poly_planner::SelStartState(Map* map,
@@ -76,17 +77,21 @@ void poly_planner::BuildCandidate(Map* map,
 		   desired_spd, object_list ); 
 }
 
-trajectory poly_planner::SelOptTrajectory(
+bool poly_planner::SelOptTrajectory(
 	candidate_p_set* s_candidates, candidate_p_set* n_candidates,
 	double desired_spd,
-	planning_object::object_manager* objects){
+	planning_object::object_manager* objects,
+	trajectory& opt_trajectory){
     trajectory_weight weight;
+    weight.t = 1.0;
     weight.s_comfort = 1.0;
     weight.n_comfort = 1.0;
+    weight.s_desired_dist = 5.0;
     weight.s_desired_spd = 5.0;
 
-
-    return optimal_selector_.Optimization( s_candidates, n_candidates, desired_spd, objects, weight);
+    return optimal_selector_.Optimization( s_candidates, n_candidates, 
+	    desired_spd, objects, weight, 
+	    opt_trajectory);
 }
 
 void poly_planner::UpdateTrajectory( Map* map, trajectory trj, int start_idx, double time_resol ){

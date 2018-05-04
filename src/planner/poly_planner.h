@@ -39,11 +39,12 @@ class poly_planner{
 		double desired_spd,
 		planning_object::object_manager* object_list);
 
-	trajectory SelOptTrajectory(
+	bool SelOptTrajectory(
 		candidate_p_set* s_candidates,
 		candidate_p_set* n_candidates,
 		double desired_spd,
-		planning_object::object_manager* objects);
+		planning_object::object_manager* objects,
+		trajectory& opt_trajectory);
 
 	void UpdateTrajectory( Map* map, trajectory trj, int start_idx, double time_resol );
 	sn_state FindPathNodeSN( sn_state searching_sn, int& idx );
