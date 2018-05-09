@@ -12,8 +12,6 @@ poly_planner::poly_planner(){
 
 void poly_planner::Run( Map* map,
 			double path_dt,
-			std::vector<double> path_x,
-			std::vector<double> path_y,
 			std::vector<double> ego_pose,
 			double lookahead_time,
 			double desired_spd,
@@ -25,16 +23,19 @@ void poly_planner::Run( Map* map,
     // ================
 
     // start poisition
-    int start_idx = -1;
+    std::cout << "start position" << std::endl;
     sn_state start_sn = SelStartState(map, path_dt,
 					path_x_, path_y_,
+					path_s_, path_n_,
 					ego_pose, lookahead_time);
-    start_sn = FindPathNodeSN( start_sn, start_idx );
+    std::vector<double> xy = map->ToCartesian( start_sn.s[0], start_sn.n[0] );
+    std::cout << "start node (s/ds/dds): " << start_sn.s[0] << ", " << start_sn.s[1] << ", " << start_sn.s[2] << std::endl;
 
     // build candidates
+    std::cout << "build candidates" << std::endl;
     poly_candidate_set s_candidates_poly, n_candidates_poly;
     BuildCandidate(map, start_sn, s_candidates_poly, n_candidates_poly, desired_spd, &object_list);
-
+    
     candidate_p_set s_candidates, n_candidates;
     for( int i=0; i<s_candidates_poly.size(); i++){
 	s_candidates.push_back( (candidate*) &s_candidates_poly[i] );
@@ -44,9 +45,18 @@ void poly_planner::Run( Map* map,
     }
 
     // select optimal trajectory
+    std::cout << "optimal selection" << std::endl;
     trajectory opt_trajectory;
-    if( SelOptTrajectory( &s_candidates, &n_candidates, desired_spd, &object_list, opt_trajectory ) ){
-	UpdateTrajectory( map, opt_trajectory, start_idx, path_dt );
+    if( SelOptTrajectory( &s_candidates, &n_candidates, desired_spd, &object_list, opt_trajectory ) == true){
+	UpdateTrajectory( map, opt_trajectory, {ego_pose[5], ego_pose[6]}, {start_sn.s[0], start_sn.n[0]}, path_dt );
+    }
+
+    int size = path_x_.size();
+    if( size > 50 ) size = 50;
+    for( int i=0 ;i<size ; i++){
+	double dx = path_x_[i+1] - path_x_[i];
+	double dy = path_y_[i+1] - path_y_[i];
+	double spd = sqrt( dx*dx + dy*dy ) / 0.02;
     }
 }
 
@@ -54,13 +64,15 @@ sn_state poly_planner::SelStartState(Map* map,
 	double path_dt,
 	std::vector<double> path_x,
 	std::vector<double> path_y,
+	std::vector<state> path_s,
+	std::vector<state> path_n,
 	std::vector<double> ego_pose,
 	double lookahead_time){
     // return start node
     return start_selector_.SelectStartNode( map, 
 	    path_dt, 
-	    path_x,
-	    path_y,
+	    path_x, path_y,
+	    path_s, path_n,
 	    ego_pose,
 	    lookahead_time);
 }
@@ -86,20 +98,24 @@ bool poly_planner::SelOptTrajectory(
     weight.t = 1.0;
     weight.s_comfort = 1.0;
     weight.n_comfort = 1.0;
-    weight.s_desired_dist = 5.0;
-    weight.s_desired_spd = 5.0;
+    weight.s_desired_dist = 10.0;
+    weight.s_desired_spd = 1.0;
 
     return optimal_selector_.Optimization( s_candidates, n_candidates, 
 	    desired_spd, objects, weight, 
 	    opt_trajectory);
 }
 
-void poly_planner::UpdateTrajectory( Map* map, trajectory trj, int start_idx, double time_resol ){
+void poly_planner::UpdateTrajectory( Map* map, trajectory trj, std::vector<double> ego_sn, std::vector<double> start_sn, double time_resol ){
     std::vector<double> path_x, path_y;
     std::vector<state> path_s, path_n;
 
-    if( start_idx != -1 ){
-	for( int i=0; i<start_idx; i++){
+    int start_node_id = FindPathNodeSN( start_sn );
+    int ego_node_id = FindPathNodeSN( ego_sn );
+    if( (start_node_id != -1) 
+	&& (ego_node_id != -1) 
+	&& (ego_node_id <= start_node_id )){
+	for( int i=ego_node_id; i<start_node_id; i++){
 	    path_x.push_back( path_x_[i] );
 	    path_y.push_back( path_y_[i] );
 	    path_s.push_back( path_s_[i] );
@@ -107,15 +123,18 @@ void poly_planner::UpdateTrajectory( Map* map, trajectory trj, int start_idx, do
 	}
     }
     double time_horizon = trj.GetTimeHorizon();
+    if( time_horizon > 3.0) time_horizon = 3.0;
     int path_size = (time_horizon) / (time_resol);
     for( int i=0; i<path_size ; i++ ){
-	std::vector<state> sn_state = trj.GetNode( (double)i * time_resol );
-	std::vector<double> xy = map->ToCartesian( sn_state[0][0], sn_state[1][0] );
-	path_s.push_back( sn_state[0] );
-	path_n.push_back( sn_state[1] );
+	sn_state sn_state = trj.GetNode( (double)i * time_resol );
+	std::vector<double> xy = map->ToCartesian( sn_state.s[0], sn_state.n[0] );
+	path_s.push_back( sn_state.s );
+	path_n.push_back( sn_state.n );
 	path_x.push_back( xy[0] );
 	path_y.push_back( xy[1] );
     }
+
+    std::cout << "### UPDATE ##### : " << path_x.size() << std::endl;
 
     // update member variables
     path_x_ = path_x;
@@ -124,16 +143,16 @@ void poly_planner::UpdateTrajectory( Map* map, trajectory trj, int start_idx, do
     path_n_ = path_n;
 }
 
-sn_state poly_planner::FindPathNodeSN( sn_state searching_sn, int& idx ){
-    if( path_s_.size() == 0 ) return searching_sn;
+int  poly_planner::FindPathNodeSN( std::vector<double> searching_sn){
+    if( path_s_.size() == 0 ) return -1;
     double min_dist = 1000;
     double min_idx = -1;
     for( int i=0 ;i < path_s_.size() ; i++ ){
 	state s = path_s_[i];
 	state n = path_n_[i];
 
-	double ds = s[0] - searching_sn.s[0];
-	double dn = n[0] - searching_sn.n[0];
+	double ds = s[0] - searching_sn[0];
+	double dn = n[0] - searching_sn[1];
 	double dist = sqrt( ds*ds + dn*dn );
 
 	if( dist < min_dist ){
@@ -141,11 +160,5 @@ sn_state poly_planner::FindPathNodeSN( sn_state searching_sn, int& idx ){
 	    min_idx = i;
 	}	
     }
-
-    sn_state closed_node_sn;
-   closed_node_sn.s = path_s_[min_idx];
-   closed_node_sn.n = path_n_[min_idx];
-
-   idx = min_idx;
-   return closed_node_sn;
+    return min_idx;   
 }

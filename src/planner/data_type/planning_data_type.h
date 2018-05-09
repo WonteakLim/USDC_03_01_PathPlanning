@@ -118,7 +118,7 @@ class trajectory{
 	inline double		    GetS_T() { return s_trajectory_->GetT(); }
 	inline double		    GetS_DesiredSpd() { return s_trajectory_->GetDesiredSpd(); }
 	inline double		    GetS_DesiredDist() { return s_trajectory_->GetDesiredDist(); }
-	std::vector<state>	    GetNode(double t);
+	sn_state		    GetNode(double t);
 	std::vector<double>	    GetMaxSpd();
 	int			    GetDiscretePathSN( double dt, double T,
 					    std::vector<double>& path_s, std::vector<double>& path_n );

@@ -39,11 +39,12 @@ double trajectory::CalTimeHorizon( ){
 
 // ================================
 // External interface
-std::vector<state> trajectory::GetNode( double t ){
-    state s_state = s_trajectory_->GetState( t );
-    state n_state = n_trajectory_->GetState( t );
+sn_state trajectory::GetNode( double t ){
+    sn_state sn;
+    sn.s = s_trajectory_->GetState( t );
+    sn.n = n_trajectory_->GetState( t );
 
-    return {s_state, n_state };
+    return sn;
 }
 
 std::vector<double> trajectory::GetMaxSpd(){

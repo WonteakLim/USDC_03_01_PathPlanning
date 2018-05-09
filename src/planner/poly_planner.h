@@ -16,8 +16,6 @@ class poly_planner{
     public:
 	void Run(Map* map,		    // reference map
 		double path_dt,		    // time interval of path's nodes
-		std::vector<double> path_x, // x position of path's nodes
-		std::vector<double> path_y, // y position of path's nodes
 		std::vector<double> ego_pose, // ego pose (x,y,yaw,spd,acc_
 		double lookahead_time,	      // seconds
 	        double desired_spd,	      // desired speed (m/s)
@@ -29,6 +27,8 @@ class poly_planner{
 		double path_dt,
 		std::vector<double> path_x, 
 		std::vector<double> path_y,
+		std::vector<state> path_s,
+		std::vector<state> path_n,
 		std::vector<double> ego_pose,
 		double lookahead_time);
 
@@ -46,8 +46,8 @@ class poly_planner{
 		planning_object::object_manager* objects,
 		trajectory& opt_trajectory);
 
-	void UpdateTrajectory( Map* map, trajectory trj, int start_idx, double time_resol );
-	sn_state FindPathNodeSN( sn_state searching_sn, int& idx );
+	void UpdateTrajectory( Map* map, trajectory trj, std::vector<double> ego_sn, std::vector<double> start_sn, double time_resol );
+	int FindPathNodeSN( std::vector<double> searching_sn );
 
     private:
 	start_selector	    start_selector_;

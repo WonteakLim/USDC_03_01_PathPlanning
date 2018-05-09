@@ -258,10 +258,9 @@ int main() {
           	// TODO: define a path made up of (x,y) points that the car will visit sequentially every .02 seconds
 
 
-		double desired_spd = 22; // 50 mph
+		double desired_spd = 21; // 50 mph
 		planner.Run(&map, 0.02,
-			previous_path_x, previous_path_y,
-			{car_x, car_y, car_yaw, car_speed, 0.0},
+			{car_x, car_y, car_yaw, car_speed, 0.0, car_s, car_d},
 			0.6, desired_spd, sensor_fusion);
 
           	msgJson["next_x"] = planner.GetTrjX();

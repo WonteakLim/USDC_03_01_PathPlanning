@@ -7,7 +7,8 @@
 // class: discrete_trajectory
 class discrete_trajectory{
     public:
-        discrete_trajectory( double dt, std::vector<double> path_x, std::vector<double> path_y );
+        discrete_trajectory( double dt, std::vector<double> path_x, std::vector<double> path_y,
+		std::vector<state> path_s, std::vector<state> path_n	);
 	~discrete_trajectory() {};
 
     private:
@@ -18,6 +19,8 @@ class discrete_trajectory{
 
 	std::vector<double> path_x_;
 	std::vector<double> path_y_;
+	std::vector<state> path_s_;
+	std::vector<state> path_n_;
 
 	int num_node_ = -1;
 
@@ -29,6 +32,8 @@ class discrete_trajectory{
 	int		    FindClosestNodeIdx(	double pose_x, double pose_y );
 
 	xy_state	    GetNode( int idx );	
+	sn_state	    GetNodeSN( int idx );
+
 	inline int	    GetNumNode(){return num_node_; }
 	inline double	    GetTimeInterval() { return time_interval_; }
 
@@ -57,6 +62,8 @@ class start_selector{
 		double prev_path_dt,
 		std::vector<double> prev_path_x, // x positions of nodes in a previous path
 		std::vector<double> prev_path_y, // y positions of nodes in a previous path
+		std::vector<state> prev_path_s,
+		std::vector<state> prev_path_n,
 		std::vector<double> ego_pose,	// x, y, yaw, spd_x, acc_x
 		double lookahead );
 

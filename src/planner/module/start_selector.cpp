@@ -3,13 +3,18 @@
 
 // ==============================
 // discrete_trajectory
-discrete_trajectory::discrete_trajectory( double dt, std::vector<double> path_x, std::vector<double> path_y )
+discrete_trajectory::discrete_trajectory( double dt, std::vector<double> path_x, std::vector<double> path_y,
+	       std::vector<state> path_s, std::vector<state> path_n	)
 :time_interval_( dt ),
 path_x_( path_x ),
-path_y_( path_y ){
+path_y_( path_y ),
+path_s_( path_s ),
+path_n_( path_n ){
     if( (path_x.size() != 0 )
 	    && (path_y.size() != 0 )
 	    && (path_x.size() == path_y.size() )
+	    && (path_s.size() == path_n.size() )
+	    && (path_x.size() == path_s.size() )
 	    && (dt > 0) ){
 	num_node_ = path_x.size();
 	valid_trajectory_ = true;
@@ -20,7 +25,7 @@ path_y_( path_y ){
 }
 
 bool discrete_trajectory::IsValid(void){
-    return valid_trajectory_;
+    return (valid_trajectory_ | (num_node_ > 0));
 }
 
 bool discrete_trajectory::IsOnTrajectory(double pose_x, double pose_y){
@@ -100,6 +105,13 @@ xy_state discrete_trajectory::GetNode( int idx ){
     return source_xy;
 }
 
+sn_state discrete_trajectory::GetNodeSN( int idx ){
+    sn_state sn;
+    sn.s = path_s_[idx];
+    sn.n = path_n_[idx];
+    return sn;
+}
+
 double discrete_trajectory::GetDistance( double x1, double y1, double x2, double y2 ){
     double dx = x1 - x2;
     double dy = y1 - y2;
@@ -133,6 +145,8 @@ sn_state start_selector::SelectStartNode(
 		double prev_path_dt,
 		std::vector<double> prev_path_x, 
 		std::vector<double> prev_path_y,
+		std::vector<state> prev_path_s,
+		std::vector<state> prev_path_n,
 		std::vector<double> ego_pose,
 		double lookahead ){
     sn_state start_node;
@@ -143,7 +157,7 @@ sn_state start_selector::SelectStartNode(
     double ego_spd = ego_pose[3];
     double ego_acc = ego_pose[4];
 
-    discrete_trajectory prev_trj( prev_path_dt, prev_path_x, prev_path_y );
+    discrete_trajectory prev_trj( prev_path_dt, prev_path_x, prev_path_y, prev_path_s, prev_path_n );
 
     // check if previous trajectory is valid or not
     bool is_valid_trj = prev_trj.IsValid();
@@ -176,13 +190,12 @@ sn_state start_selector::FindLookaheadNode( Map* map,
     int effective_idx = ref_idx + lookahead_idx;
     
     int path_size = trj->GetNumNode();
-    if( path_size <= lookahead_idx ){
+    if( path_size <= effective_idx ){
 	effective_idx = path_size - 1;
     }
-
     // get the lookahead node
-    xy_state lookahead_node_xy = trj->GetNode( effective_idx );
-    sn_state lookahead_node_sn = ConvXY2SN( map, lookahead_node_xy );
+    //xy_state lookahead_node_xy = trj->GetNode( effective_idx );
+    sn_state lookahead_node_sn = trj->GetNodeSN( effective_idx );
 
     return lookahead_node_sn;
 }

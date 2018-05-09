@@ -26,17 +26,23 @@ void candidate_builder::BuildVariants( Map* map,
     for( int i=0; i<n_offset ; i++ ){
 	spd_offsets.push_back( - i*offset_resol );
     }
-    AddCandidate( s_candidates, KeepSpeedS( -1, start_state_s, desired_spd, spd_offsets, {1.0, 3.0, 5.0} ) );
+    AddCandidate( s_candidates, KeepSpeedS( -1, start_state_s, desired_spd, spd_offsets, {2.0, 3.0, 4.0, 5.0} ) );
+
+    std::vector<double>  vari;
+    for( int i=0; i<9; i++){
+	vari.push_back( start_state_s[1] - desired_spd + (i-5)*0.5 );
+    }
+    //AddCandidate( s_candidates, KeepSpeedS( -1, start_state_s, desired_spd, vari, {2.0, 3.0, 4.0, 5.0} ) );
 
     // 2. following the preceding vehicle
     int start_lane = map->GetLaneIndexN( start_state_n[0] ); 
     planning_object::planning_object_t preceding_vehicle;
-    if( object_list->GetPrecedingVehicleSN( start_state_s[0], start_state_n[0], preceding_vehicle ) == true ){
+    if( (object_list->GetPrecedingVehicleSN( start_state_s[0], start_state_n[0], preceding_vehicle ) == true)
+       && ( (preceding_vehicle.s - start_state_s[0]) < 150.0 ) ){
 	double dist = preceding_vehicle.s;
 	double spd = preceding_vehicle.spd;
 
-	std::cout << "front vehicle (dist/spd): " << dist-start_state_s[0] << " / " << spd-start_state_s[1] << std::endl;
-	AddCandidate( s_candidates, FollowObjectS( start_lane, start_state_s, 3.0, dist, spd, {0.0}, {1.0, 2.0, 3.0, 4.0, 5.0}) );
+	//AddCandidate( s_candidates, FollowObjectS( start_lane, start_state_s, 2.0, dist, spd, {-5.0, -3.0, 0.0}, {1.0, 2.0, 3.0, 4.0, 5.0}) );
     }
     //AddCandidate( s_candidates, StopS( 1, start_state_s, 200, {10} ) );
 
@@ -63,7 +69,7 @@ poly_candidate_set candidate_builder::KeepSpeedS(
     poly_candidate_set s_variants;
     for( int i = 0 ; i < T.size() ; i++ ){
 	for( int j=0 ; j < spd_disturb.size(); j++ ){
-	    poly_candidate variant( lane_idx, start, {target_spd+spd_disturb[j], 0.0}, {target_spd*T[i], target_spd},  T[i] );
+	    poly_candidate variant( lane_idx, start, {target_spd+spd_disturb[j], 0.0}, {0.0, target_spd},  T[i] );
 	    variant.ClearPreWeightDist();
 	    s_variants.push_back( variant );
 	}
@@ -80,11 +86,13 @@ poly_candidate_set candidate_builder::FollowObjectS(
 		std::vector<double> T){
     // constant time gap policy
     double target_dist = obj_dist - (default_dist_gap_ + obj_spd * time_gap);
-    std::cout << "time gap/spd: " << obj_dist -target_dist << "/" << obj_spd;
     poly_candidate_set s_variants;
     for( int i=0; i<T.size(); i++){
 	for( int j=0; j<s_disturb.size() ; j++){
 	    poly_candidate variant( lane_idx, start, {target_dist + s_disturb[j], obj_spd, 0.0}, {target_dist, obj_spd}, T[i]);
+	    //std::cout << "Following(s): " << start[0] << ", " << start[1] << ", " << start[2] << std::endl;
+	    //std::cout << "Following(t): " << target_dist+s_disturb[j] << ", " << obj_spd << std::endl;
+	    variant.ClearPreWeightSpd();
 	    s_variants.push_back( variant );
 	}
     }
@@ -114,7 +122,7 @@ poly_candidate_set candidate_builder::GenerateVariantsN(
     for( int i =0 ; i<n_offsets.size() ; i++){
 	    for( int j=0 ; j<t_offsets.size(); j++ ){
 		    state target_state = { n_offset_ref + n_offsets[i], 0.0, 0.0};
-		    poly_candidate candidate( lane_idx, start_state, target_state, {n_offset_ref, 0.0},t_offsets[j]); 
+		    poly_candidate candidate( lane_idx, start_state, target_state, {n_offset_ref, 0.0}, t_offsets[j]); 
 		    n_variants.push_back( candidate );
 	    }
     }

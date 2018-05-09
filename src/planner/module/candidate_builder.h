@@ -44,11 +44,11 @@ class candidate_builder{
 
 	// feasibility check
     private:
-	const double ACC_LIMIT_S = 10.0;
-	const double DCC_LIMIT_S = -20.0;
-	const double ACC_LIMIT_N = 0.5;
-	const double JERK_LIMIT_S = 100.0;
-	const double JERK_LIMIT_N = 100.0;
+	const double ACC_LIMIT_S = 4.0;
+	const double DCC_LIMIT_S = -5.0;
+	const double ACC_LIMIT_N = 2.0;
+	const double JERK_LIMIT_S = 10.0;
+	const double JERK_LIMIT_N = 10.0;
     private:
 	poly_candidate_set FilterFeasibleS( poly_candidate_set* variants );
 	poly_candidate_set FilterFeasibleN( poly_candidate_set* variants );
