@@ -104,16 +104,7 @@ planning_object_list_t object_manager::ObjectsInRange( double s_min, double s_ma
     return in_objects;
 }
 
-bool object_manager::GetPrecedingVehicleXY( double x, double y, double yaw, 
-	planning_object_t& preceding){
-    std::vector<double> sn = map_.ToFrenet(x,y );
-    return GetPrecedingVehicleSN( sn[0], sn[1], preceding );
-}
-
-bool object_manager::GetPrecedingVehicleSN( double s, double n, 
-	planning_object_t& preceding){
-    int lane_idx = map_.GetLaneIndexN( n );
-
+bool object_manager::GetPrecedingVehicleLane( double s, int lane_idx, planning_object_t& preceding){
     // find object in the lane (lane_idx)
     if( lane_index_.count( lane_idx ) == 0 ) return false;
     std::pair< std::map<int, planning_object_t*>::iterator, std::map<int, planning_object_t*>::iterator> it;
@@ -135,6 +126,19 @@ bool object_manager::GetPrecedingVehicleSN( double s, double n,
 
     if( is_preceding == true)	return true;
     else			return false;
+}
+
+bool object_manager::GetPrecedingVehicleXY( double x, double y, double yaw, 
+	planning_object_t& preceding){
+    std::vector<double> sn = map_.ToFrenet(x,y );
+    return GetPrecedingVehicleSN( sn[0], sn[1], preceding );
+}
+
+bool object_manager::GetPrecedingVehicleSN( double s, double n, 
+	planning_object_t& preceding){
+    int lane_idx = map_.GetLaneIndexN( n );
+
+    return GetPrecedingVehicleLane( s, lane_idx, preceding );
 }
 
 bool object_manager::GetObject( int object_id,

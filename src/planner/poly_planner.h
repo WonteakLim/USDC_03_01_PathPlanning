@@ -36,13 +36,14 @@ class poly_planner{
 		sn_state start_state,
 		std::vector<poly_candidate>& s_candidate,
 		std::vector<poly_candidate>& n_candidate,
+		candidate_weight weigh,
 		double desired_spd,
 		planning_object::object_manager* object_list);
 
 	bool SelOptTrajectory(
 		candidate_p_set* s_candidates,
 		candidate_p_set* n_candidates,
-		double desired_spd,
+		double s_weight, double n_weight,
 		planning_object::object_manager* objects,
 		trajectory& opt_trajectory);
 
@@ -59,6 +60,21 @@ class poly_planner{
 	std::vector<state> path_n_;
 	std::vector<double> path_x_;
 	std::vector<double> path_y_;
+
+    private:
+	// weight
+	double s_weight_ = 1.0;
+	double n_weight_ = 1.0;
+
+	double weight_s_jerk_ = 10.0;
+	double weight_s_time_ = 1.0;
+	double weight_s_stop_ = 1.0;
+	double weight_s_follow_ = 1.0;
+	double weight_s_keep_spd_ = 100.0;
+
+	double weight_n_jerk_ = 1.0;
+	double weight_n_time_ = 1.0;
+	double weight_n_terminal_ = 1.0;
 
     public:
 	inline std::vector<double> GetTrjX() { return path_x_; }

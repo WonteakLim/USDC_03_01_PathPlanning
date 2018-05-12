@@ -11,16 +11,24 @@ class optimal_selector{
     public:
 	bool Optimization( candidate_p_set* s_candidate,
 				 candidate_p_set* n_candidate,
-				 double desired_spd,
+				 double s_weight, double n_weight,
 				 planning_object::object_manager* objects,
-				 trajectory_weight weight,
 				 trajectory& opt_trajectory);
 
     private:
 	trajectory_set SN2Trajectory(   candidate_p_set* s_candidate,
 					candidate_p_set* n_candidate,
-					double desired_spd,
-					trajectory_weight weight );
+					double s_weight, double n_weight);
+
+	// Collision cehck
+    private:
+	double collision_check_resol_ = 0.5;
+	double collision_check_time_ = 3.0;
+	double vehicle_length_ = 4.0;
+	double vehicle_width_ = 2.0;
+
+    private:
+	void print( trajectory* trj);
 
 };
 

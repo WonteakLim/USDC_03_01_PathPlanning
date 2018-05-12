@@ -21,6 +21,12 @@ enum feasible_status{
     INFEASIBLE
 };
 
+enum maneuver_type{
+    STOP = 0,
+    FOLLOW,
+    KEEPING
+};
+
 class candidate{
     public:
 	candidate() {}
@@ -43,14 +49,8 @@ class candidate{
 	// predefined functions
     public:
 	int GetLaneIndex() { return lane_index_; }
-	double GetDesiredSpd() { return desired_spd_; }
-	double GetDesiredDist() { return desired_dist_; }
-
     protected:
 	void SetLaneIndex(int idx) { lane_index_ = idx; }
-	void SetDesiredSpeed(double spd) {desired_spd_ = spd;}
-	void SetDesiredDist(double dist) {desired_dist_ = dist;}
-
     protected:
 	double max_spd_ = -1.0;
 	double max_acc_ = DEFAULT_ACC;	
@@ -60,40 +60,24 @@ class candidate{
 	int lane_index_ = -1;
 	feasible_status is_feasible = UNKNOWN;
 
-	double desired_spd_ = 0.0;
-	double desired_dist_ = 0.0;
+    protected:
+	double cost_ = 0.0;
+	maneuver_type maneuver_;
 
-    private:
-	double pre_weight_dist_ = 1.0;
-	double pre_weight_spd_ = 1.0;
     public:
-	inline double GetPreWeightDist() { return pre_weight_dist_;} 
-	inline double GetPreWeightSpd() { return pre_weight_spd_; }
-	inline void SetPreWeightDist() { pre_weight_dist_ = 1.0;}
-	inline void SetPreWeightSpd() { pre_weight_spd_ = 1.0;}
-	inline void ClearPreWeightDist() { pre_weight_dist_ = 0.0; }
-	inline void ClearPreWeightSpd() { pre_weight_spd_ = 0.0; }
-
+	inline double	GetCost() { return cost_; }
+	inline maneuver_type GetManeuver() { return maneuver_; }
 };
 
 typedef std::vector<candidate> candidate_set;
 typedef std::vector<candidate*> candidate_p_set;
-
-struct trajectory_weight{
-    double t;
-    double s_comfort;
-    double n_comfort;
-    double s_desired_dist;
-    double s_desired_spd;
-};
 
 class trajectory{
     public:
 	trajectory() {}
 	trajectory( int idx, 
 		candidate* s_candidate, candidate* n_candidate,
-		double desired_spd,
-	       trajectory_weight weight	);
+	        double s_weight, double n_weight	);
 	~trajectory() {}
 
     private:
@@ -103,11 +87,10 @@ class trajectory{
 	int idx_=-1;
 	double time_horizon_=-1.0;
 	double cost_ = 0.0;
-	double desired_spd_=0.0;
 
     private:
 	double	    CalTimeHorizon( );
-	double	    CalCost( trajectory_weight weight );
+	double	    CalCost( double s_weight, double n_weight );
 
 	// =========================
 	// External interface
@@ -115,13 +98,14 @@ class trajectory{
 	inline int		    GetIdx() { return idx_; }
 	inline double		    GetCost() { return cost_; }
 	inline double		    GetTimeHorizon() { return time_horizon_; }
-	inline double		    GetS_T() { return s_trajectory_->GetT(); }
-	inline double		    GetS_DesiredSpd() { return s_trajectory_->GetDesiredSpd(); }
-	inline double		    GetS_DesiredDist() { return s_trajectory_->GetDesiredDist(); }
+	//inline double		    GetS_T() { return s_trajectory_->GetT(); }
 	sn_state		    GetNode(double t);
 	std::vector<double>	    GetMaxSpd();
 	int			    GetDiscretePathSN( double dt, double T,
 					    std::vector<double>& path_s, std::vector<double>& path_n );
+
+	candidate*		    GetpTrajectoryS() { return s_trajectory_; }
+	candidate*		    GetpTrajectoryN() { return n_trajectory_; }
 
     public:
 	bool operator < (const trajectory& trj ) const{

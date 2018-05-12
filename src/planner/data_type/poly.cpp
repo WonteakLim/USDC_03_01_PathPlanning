@@ -34,7 +34,6 @@ Eigen::VectorXd solve_poly(vector<double> state_0,
 		    coeffs[0],
 		    coeffs[1],
 		    0;
-	    std::cout << "time: " << T << ", " << poly_eval_v( result, T)[1] << std::endl;
 	}
 	
 	// Quintic polynomial

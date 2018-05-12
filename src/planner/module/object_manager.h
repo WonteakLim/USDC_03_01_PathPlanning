@@ -67,6 +67,7 @@ namespace planning_object{
 				    // [x, y, vx, vy, s, n]
 
 	public:
+	    bool		    GetPrecedingVehicleLane(double s, int lane_idx, planning_object_t& preceding);
 	    bool		    GetPrecedingVehicleXY(double x, double y, double yaw, 
 							planning_object_t& preceding);
 	    bool		    GetPrecedingVehicleSN( double s, double n ,

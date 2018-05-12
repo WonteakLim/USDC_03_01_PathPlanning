@@ -5,10 +5,21 @@ poly_candidate::poly_candidate(int lane_idx, state start, state end, state desir
     poly_ = solve_poly( start, end, T);
     start_state_ = start;
     end_state_ = end;
+    desired_state_ = desired;
     continuation_time_ = T;
     SetLaneIndex( lane_idx );
-    desired_dist_ = desired[0];
-    desired_spd_ = desired[1];
+
+    if( end.size() == 2 ){
+	maneuver_ = KEEPING;
+    }
+    else if( end.size() == 3){
+	if( (end[1] < 1e-5) && (end[2]<1e-5) ){
+	    maneuver_ = STOP;
+	}
+	else{
+	    maneuver_ = FOLLOW;
+	}
+    }
 }
 
 poly_candidate::~poly_candidate(){
@@ -51,7 +62,24 @@ double poly_candidate::GetT(){
 }
 
 state poly_candidate::GetState( double t ){
-    return poly_eval_v( poly_, t );
+    if( t < continuation_time_ ){
+	return poly_eval_v( poly_, t );
+    }
+    else{
+	return {
+	    end_state_[0] + end_state_[1]*(t-continuation_time_) + 0.5*end_state_[2]*(t-continuation_time_)*(t-continuation_time_),
+	    end_state_[1] + end_state_[2]*(t-continuation_time_),
+	    end_state_[2]
+	};
+    }
 }
 
+void poly_candidate::CalTotalCost( double w_jerk, double w_time, double w_terminal ){
+    weight_jerk_ = w_jerk;
+    weight_con_time_ = w_time;
+    weight_terminal_ = w_terminal;
 
+    cost_ = w_jerk * GetIntegJerk() / continuation_time_ + 
+	w_time * continuation_time_ + 
+	w_terminal * 0.5*( end_state_[0] - desired_state_[0])*( end_state_[0] - desired_state_[0]);
+}

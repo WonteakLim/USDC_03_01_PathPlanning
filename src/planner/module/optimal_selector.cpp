@@ -13,25 +13,26 @@ optimal_selector::~optimal_selector(){
 
 bool optimal_selector::Optimization( candidate_p_set* s_candidate,
 			 candidate_p_set* n_candidate,
-			 double desired_spd,
+			 double s_weight, double n_weight,
 			 planning_object::object_manager* objects,
-			 trajectory_weight weight,
 			 trajectory& opt_trajectory	){
 
     
     // trajectory candidate from s and n candidate
-    trajectory_set candidates = SN2Trajectory( s_candidate, n_candidate, desired_spd, weight );
+    trajectory_set candidates = SN2Trajectory( s_candidate, n_candidate, s_weight, n_weight );
     
     // optimal trajectory selection with collision check
-    double col_dt = 0.5;
+    for( int i=0; i<10; i++){
+	print( &candidates[i] );
+    }
+
     bool is_collision = true;
     for( int i=0; i<candidates.size(); i++){
-	double t = candidates[i].GetS_T();
-	sn_state sn = candidates[i].GetNode( t );
-	std::cout << "canddates(T/D/S): " << t  << ", " << sn.s[0] << ", " << sn.s[1] << std::endl;
 	std::vector<double> path_s, path_n;
-	candidates[i].GetDiscretePathSN( col_dt, 3, path_s, path_n );
-	if( objects->IsCollision( col_dt, path_s, path_n, 4.0, 2.0 ) == false){
+	candidates[i].GetDiscretePathSN( collision_check_resol_, collision_check_time_, path_s, path_n );
+	if( objects->IsCollision( collision_check_resol_, path_s, path_n, vehicle_length_, vehicle_width_ ) == false){
+	    std::cout << "#### optimal ######" << std::endl;
+	    print( &candidates[i] );
 	    opt_trajectory = candidates[i];
 	    is_collision = false;
 	    //return true;
@@ -43,8 +44,7 @@ bool optimal_selector::Optimization( candidate_p_set* s_candidate,
 
 trajectory_set optimal_selector::SN2Trajectory(	candidate_p_set* s_candidate,
 				candidate_p_set* n_candidate,
-				double desired_spd,
-				trajectory_weight weight ){
+				double s_weight, double n_weight ){
     trajectory_set sn_candidates;
 
     // mix
@@ -53,7 +53,7 @@ trajectory_set optimal_selector::SN2Trajectory(	candidate_p_set* s_candidate,
 	for( int in = 0; in<n_candidate->size() ; in++ ){
 	    if( ( (*s_candidate)[is]->GetLaneIndex() == (*n_candidate)[in]->GetLaneIndex())
 	     || ( (*s_candidate)[is]->GetLaneIndex() == -1 ) ){
-		trajectory sn_candidate( idx_trj, (*s_candidate)[is], (*n_candidate)[in], desired_spd, weight );
+		trajectory sn_candidate( idx_trj, (*s_candidate)[is], (*n_candidate)[in], s_weight, n_weight );
 
 		sn_candidates.push_back( sn_candidate );
 		idx_trj++;
@@ -67,4 +67,19 @@ trajectory_set optimal_selector::SN2Trajectory(	candidate_p_set* s_candidate,
     return sn_candidates;
 }
 
+void optimal_selector::print( trajectory* trj ){
+    candidate* candi = trj->GetpTrajectoryS();
+    double T = candi->GetT();
+    state s = candi->GetState( T );
+    std::cout << "candidate(T/s/ds): ";
+    if( candi->GetManeuver() == FOLLOW){
+	std::cout << "F: ";
+    }
+    else{
+	std::cout << "K: ";
+    }
+    std::cout << T << "/" << s[0] << "/" << s[1];
+    std:: cout << ": " << trj->GetCost() << std::endl;
+
+}
 

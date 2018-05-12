@@ -4,28 +4,17 @@
 trajectory::trajectory( 
 	int idx, 
 	candidate* s_candidate, candidate* n_candidate,
-        double desired_spd,
-	trajectory_weight weight	)
+	double s_weight, double n_weight	)
 : idx_( idx ),
 s_trajectory_( s_candidate ),
-n_trajectory_( n_candidate ),
-desired_spd_(desired_spd){
+n_trajectory_( n_candidate ){
     time_horizon_ = CalTimeHorizon( );
-    cost_ = CalCost( weight );
+    cost_ = CalCost( s_weight, n_weight );
 }
 
-double trajectory::CalCost(trajectory_weight weight){
-    double s_jerk = s_trajectory_->GetIntegJerk();
-    double n_jerk = n_trajectory_->GetIntegJerk();
-    double s_diff_dist = abs(  s_trajectory_->GetState( s_trajectory_->GetT())[0] - s_trajectory_->GetDesiredDist());
-    double s_diff_spd = abs( s_trajectory_->GetState( s_trajectory_->GetT())[1] - s_trajectory_->GetDesiredSpd());
-    
-    double cost = weight.t * s_trajectory_->GetT()
-		+ weight.s_comfort * s_jerk
-	    	+ weight.n_comfort * n_jerk
-		+ s_trajectory_->GetPreWeightDist() * weight.s_desired_dist * s_diff_dist * s_diff_dist
-		+ s_trajectory_->GetPreWeightSpd() * weight.s_desired_spd * s_diff_spd * s_diff_spd;
-    return cost;
+double trajectory::CalCost(double s_weight, double n_weight){
+    return s_weight*s_trajectory_->GetCost()
+	+ n_weight*n_trajectory_->GetCost();
 }
 
 double trajectory::CalTimeHorizon( ){

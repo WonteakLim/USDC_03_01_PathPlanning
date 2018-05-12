@@ -33,8 +33,11 @@ void poly_planner::Run( Map* map,
 
     // build candidates
     std::cout << "build candidates" << std::endl;
+    candidate_weight weight = { 
+	weight_s_jerk_, weight_s_time_, weight_s_stop_, weight_s_follow_, weight_s_keep_spd_, 
+	weight_n_jerk_, weight_n_time_, weight_n_terminal_};
     poly_candidate_set s_candidates_poly, n_candidates_poly;
-    BuildCandidate(map, start_sn, s_candidates_poly, n_candidates_poly, desired_spd, &object_list);
+    BuildCandidate(map, start_sn, s_candidates_poly, n_candidates_poly, weight, desired_spd, &object_list);
     
     candidate_p_set s_candidates, n_candidates;
     for( int i=0; i<s_candidates_poly.size(); i++){
@@ -47,7 +50,7 @@ void poly_planner::Run( Map* map,
     // select optimal trajectory
     std::cout << "optimal selection" << std::endl;
     trajectory opt_trajectory;
-    if( SelOptTrajectory( &s_candidates, &n_candidates, desired_spd, &object_list, opt_trajectory ) == true){
+    if( SelOptTrajectory( &s_candidates, &n_candidates, s_weight_, n_weight_, &object_list, opt_trajectory ) == true){
 	UpdateTrajectory( map, opt_trajectory, {ego_pose[5], ego_pose[6]}, {start_sn.s[0], start_sn.n[0]}, path_dt );
     }
 
@@ -79,34 +82,47 @@ sn_state poly_planner::SelStartState(Map* map,
 
 void poly_planner::BuildCandidate(Map* map,
 	sn_state start_state, 
-	poly_candidate_set& s_candidate, poly_candidate_set& n_candidate, double desired_spd,
+	poly_candidate_set& s_candidate, poly_candidate_set& n_candidate, 
+	candidate_weight weight, double desired_spd,
 	planning_object::object_manager* object_list){
     s_candidate.clear();
     n_candidate.clear();
     
     candidate_builder_.BuildVariants( map, start_state.s, start_state.n,
-		   s_candidate, n_candidate,
-		   desired_spd, object_list ); 
+		    s_candidate, n_candidate, weight,
+		    desired_spd, object_list ); 
 }
 
 bool poly_planner::SelOptTrajectory(
 	candidate_p_set* s_candidates, candidate_p_set* n_candidates,
-	double desired_spd,
+	double s_weight, double n_weight,
 	planning_object::object_manager* objects,
 	trajectory& opt_trajectory){
-    trajectory_weight weight;
-    weight.t = 1.0;
-    weight.s_comfort = 1.0;
-    weight.n_comfort = 1.0;
-    weight.s_desired_dist = 10.0;
-    weight.s_desired_spd = 1.0;
 
-    return optimal_selector_.Optimization( s_candidates, n_candidates, 
-	    desired_spd, objects, weight, 
+    return optimal_selector_.Optimization( s_candidates, n_candidates,
+	    s_weight, n_weight,
+	    objects,
 	    opt_trajectory);
 }
 
 void poly_planner::UpdateTrajectory( Map* map, trajectory trj, std::vector<double> ego_sn, std::vector<double> start_sn, double time_resol ){
+    std::cout << "Final trajectory: ";
+    switch( trj.GetpTrajectoryS()->GetManeuver()){
+	case STOP:
+	    std::cout << "STOP";
+	    break;
+	case KEEPING:
+	    std::cout << "KEEPING";
+	    break;
+	case FOLLOW:
+	    std::cout << "FOLLOWING";
+	    break;
+	default:
+	    break;
+    }
+    std::cout << std::endl;
+
+
     std::vector<double> path_x, path_y;
     std::vector<state> path_s, path_n;
 

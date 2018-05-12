@@ -23,10 +23,20 @@ class poly_candidate : public candidate{
     private:
 	state start_state_;
 	state end_state_;
+	state desired_state_;
 	double continuation_time_;
 
     private:
 	polynomial poly_;
+
+	// cost
+    private:
+	double weight_jerk_ = 0.0;
+	double weight_con_time_ = 0.0;
+	double weight_terminal_ = 0.0;
+
+    public:
+	void CalTotalCost( double w_jerk, double w_time, double w_terminal );
 };
 
 typedef std::vector<poly_candidate> poly_candidate_set;
