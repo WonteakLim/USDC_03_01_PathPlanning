@@ -109,7 +109,7 @@ struct Map
 	public:
 		double	max_s_;
   		double	lane_width_=4.0;
-  		int	lanes_ = 4;
+  		int	lanes_ = 3;
 	private:
   		spline x_s_;
   		spline y_s_;

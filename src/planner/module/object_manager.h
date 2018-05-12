@@ -22,8 +22,8 @@ namespace planning_object{
 
     class obj_shape_t{
 	public:
-	    double length;
-	    double width;
+	    double length = 5.0;
+	    double width = 2.2;
     };
 
     typedef std::vector<obj_stateT_t> obj_predict_t;

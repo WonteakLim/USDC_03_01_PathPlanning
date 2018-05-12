@@ -70,23 +70,27 @@ void candidate_builder::BuildVariants( Map* map,
     //AddCandidate( s_candidates, KeepSpeedS( -1, start_state_s, desired_spd, vari, {2.0, 3.0, 4.0, 5.0} ) );
 
     // 2. following the preceding vehicle
-    planning_object::planning_object_t preceding_vehicle;
-    // check if there is a preceding vehicle
-    std::pair< veh_in_lane_t::iterator, veh_in_lane_t::iterator > it_preceding;
-    it_preceding = vehicle_in_lanes.equal_range( start_lane );
-    if( it_preceding.first != it_preceding.second ){
-   	double dist = (it_preceding.first->second).s;
-	double spd = (it_preceding.first->second).spd;
+    for( int lane = 0 ; lane < map->GetNumLane(); lane++){
+	planning_object::planning_object_t preceding_vehicle;
+	// check if there is a preceding vehicle
+	std::pair< veh_in_lane_t::iterator, veh_in_lane_t::iterator > it_preceding;
+	it_preceding = vehicle_in_lanes.equal_range( lane );
+	if( it_preceding.first != it_preceding.second ){
+	  double dist = (it_preceding.first->second).s;
+	    double spd = (it_preceding.first->second).spd;
 
-	std::cout << "object(dist/spd): " << dist-start_state_s[0] << "/" << spd << std::endl;
+	    std::cout << "object(dist/spd): " << dist-start_state_s[0] << "/" << spd << std::endl;
 
-	AddCandidate( s_candidates, FollowObjectS( start_lane, start_state_s, acc_time_gap_, dist, spd, {0.0}, {1.0, 2.0, 3.0, 4.0, 5.0}) );
+	    AddCandidate( s_candidates, FollowObjectS( start_lane, start_state_s, acc_time_gap_, dist, spd, {0.0}, {1.0, 2.0, 3.0, 4.0, 5.0}) );
+	}
     }
     //AddCandidate( s_candidates, StopS( 1, start_state_s, 200, {10} ) );
 
     // build n variants ---------------------
     poly_candidate_set n_candidates;
-    AddCandidate( n_candidates, GenerateVariantsN( 1, start_state_n, 6.0, {0.0}, {4.0} ) );
+    for( int lane = 0; lane<map->GetNumLane(); lane++){
+	AddCandidate( n_candidates, GenerateVariantsN( lane, start_state_n, map->GetOffset(lane), {0.0}, {1.0, 2.0, 3.0, 4.0, 5.0} ) );
+    }
     //AddCandidate( n_candidates, GenerateVariantsN( 1, start_state_n, 2.0, {-0.5, 0.0, 0.5}, {2.0, 3.0, 4.0} ) );
 
 

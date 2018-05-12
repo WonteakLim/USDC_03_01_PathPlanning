@@ -63,14 +63,14 @@ class poly_planner{
 
     private:
 	// weight
-	double s_weight_ = 1.0;
-	double n_weight_ = 1.0;
+	double s_weight_ = 10.0;
+	double n_weight_ = 0.1;
 
 	double weight_s_jerk_ = 10.0;
-	double weight_s_time_ = 1.0;
+	double weight_s_time_ = 10.0;
 	double weight_s_stop_ = 1.0;
 	double weight_s_follow_ = 1.0;
-	double weight_s_keep_spd_ = 100.0;
+	double weight_s_keep_spd_ =50.0;
 
 	double weight_n_jerk_ = 1.0;
 	double weight_n_time_ = 1.0;

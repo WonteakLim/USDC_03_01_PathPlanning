@@ -22,10 +22,10 @@ class optimal_selector{
 
 	// Collision cehck
     private:
-	double collision_check_resol_ = 0.5;
+	double collision_check_resol_ = 0.1;
 	double collision_check_time_ = 3.0;
-	double vehicle_length_ = 4.0;
-	double vehicle_width_ = 2.0;
+	double vehicle_length_ = 6.0;
+	double vehicle_width_ = 3.0;
 
     private:
 	void print( trajectory* trj);

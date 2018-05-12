@@ -21,8 +21,8 @@ void object_manager::AddObjects( std::vector<std::vector<double>> objects ){
 	planning_object.s = objects[i][5];
 	planning_object.n = objects[i][6];
 
-	planning_object.length = 4.0;
-	planning_object.width = 2.0;
+	planning_object.length = 5.0;
+	planning_object.width = 2.2;
 
 	int lane_id = AssociateLane( planning_object.n );
 	planning_object.lane_id = lane_id;
