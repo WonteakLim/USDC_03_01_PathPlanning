@@ -59,6 +59,7 @@ namespace planning_object{
 	    void		    AddObjects( std::vector<std::vector<double>> object );
 	    int			    AssociateLane( double n ); 
 	    obj_predict_t	    PredictMotion( obj_state_t state, double dt, double T );
+	    obj_predict_t	    PredictMotion( obj_state_t state, double dt, double start_time, double end_time);
 	    planning_object_list_t  GetWatchable( double s, double n );
 	    planning_object_list_t  ObjectsInRange( double s_min, double s_max, double n_min, double n_max );
 	// =============================
@@ -76,7 +77,8 @@ namespace planning_object{
 							planning_object_t& object);
 	    planning_object_list_t  GetAllObjects();
 	    planning_object_list_t  GetObjectsInLane( int lane_idx );
-	    bool		    IsCollision(double dt, 
+	    bool		    IsCollision(double start_time,
+						double dt, 
 						std::vector<double> trj_s, 
 						std::vector<double> trj_n, 
 						double length, double width );

@@ -65,11 +65,12 @@ state poly_candidate::GetState( double t ){
     if( t < continuation_time_ ){
 	return poly_eval_v( poly_, t );
     }
-    else{
+    else{	
+	state s_T = poly_eval_v( poly_, continuation_time_ );
 	return {
-	    end_state_[0] + end_state_[1]*(t-continuation_time_) + 0.5*end_state_[2]*(t-continuation_time_)*(t-continuation_time_),
-	    end_state_[1] + end_state_[2]*(t-continuation_time_),
-	    end_state_[2]
+	    s_T[0] + s_T[1]*(t-continuation_time_) + 0.5*s_T[2]*(t-continuation_time_)*(t-continuation_time_),
+	    s_T[1] + s_T[2]*(t-continuation_time_),
+	    s_T[2]
 	};
     }
 }

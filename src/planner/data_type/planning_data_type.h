@@ -88,6 +88,8 @@ class trajectory{
 	double time_horizon_=-1.0;
 	double cost_ = 0.0;
 
+	int lane_idx_ = -1;
+
     private:
 	double	    CalTimeHorizon( );
 	double	    CalCost( double s_weight, double n_weight );

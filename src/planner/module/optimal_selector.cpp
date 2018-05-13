@@ -11,7 +11,9 @@ optimal_selector::~optimal_selector(){
 
 }
 
-bool optimal_selector::Optimization( candidate_p_set* s_candidate,
+bool optimal_selector::Optimization( 
+			double lookahead_time,
+			candidate_p_set* s_candidate,
 			 candidate_p_set* n_candidate,
 			 double s_weight, double n_weight,
 			 planning_object::object_manager* objects,
@@ -30,7 +32,7 @@ bool optimal_selector::Optimization( candidate_p_set* s_candidate,
     for( int i=0; i<candidates.size(); i++){
 	std::vector<double> path_s, path_n;
 	candidates[i].GetDiscretePathSN( collision_check_resol_, collision_check_time_, path_s, path_n );
-	if( objects->IsCollision( collision_check_resol_, path_s, path_n, vehicle_length_, vehicle_width_ ) == false){
+	if( objects->IsCollision( lookahead_time, collision_check_resol_, path_s, path_n, vehicle_length_, vehicle_width_ ) == false){
 	    std::cout << "#### optimal ######" << std::endl;
 	    print( &candidates[i] );
 	    opt_trajectory = candidates[i];

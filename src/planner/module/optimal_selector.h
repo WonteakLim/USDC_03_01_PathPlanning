@@ -9,7 +9,8 @@ class optimal_selector{
 	~optimal_selector();
 
     public:
-	bool Optimization( candidate_p_set* s_candidate,
+	bool Optimization( double lookahead_time,
+				 candidate_p_set* s_candidate,
 				 candidate_p_set* n_candidate,
 				 double s_weight, double n_weight,
 				 planning_object::object_manager* objects,

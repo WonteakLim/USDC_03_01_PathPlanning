@@ -32,7 +32,7 @@ void candidate_builder::BuildVariants( Map* map,
 	planning_object::planning_object_t preceding_vehicle;
 	if( (object_list->GetPrecedingVehicleLane( start_state_s[0], lane, preceding_vehicle ) == true)
 	&& ( (preceding_vehicle.s - start_state_s[0]) < 150.0 ) ){
-	    std::cout << "preceding: " << lane << "/" << preceding_vehicle.s - start_state_s[0] << "/" << preceding_vehicle.spd << std::endl;
+	    //std::cout << "preceding: " << lane << "/" << preceding_vehicle.s - start_state_s[0] << "/" << preceding_vehicle.spd << std::endl;
 	    vehicle_in_lanes.insert( std::pair<int, planning_object::planning_object_t>( lane, preceding_vehicle ) );
 	}
     }
@@ -79,7 +79,7 @@ void candidate_builder::BuildVariants( Map* map,
 	  double dist = (it_preceding.first->second).s;
 	    double spd = (it_preceding.first->second).spd;
 
-	    std::cout << "object(dist/spd): " << dist-start_state_s[0] << "/" << spd << std::endl;
+	    //std::cout << "object(dist/spd): " << dist-start_state_s[0] << "/" << spd << std::endl;
 
 	    AddCandidate( s_candidates, FollowObjectS( start_lane, start_state_s, acc_time_gap_, dist, spd, {0.0}, {1.0, 2.0, 3.0, 4.0, 5.0}) );
 	}

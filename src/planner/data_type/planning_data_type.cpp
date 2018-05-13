@@ -6,6 +6,7 @@ trajectory::trajectory(
 	candidate* s_candidate, candidate* n_candidate,
 	double s_weight, double n_weight	)
 : idx_( idx ),
+lane_idx_( s_candidate->GetLaneIndex() ),
 s_trajectory_( s_candidate ),
 n_trajectory_( n_candidate ){
     time_horizon_ = CalTimeHorizon( );
@@ -14,7 +15,8 @@ n_trajectory_( n_candidate ){
 
 double trajectory::CalCost(double s_weight, double n_weight){
     return s_weight*s_trajectory_->GetCost()
-	+ n_weight*n_trajectory_->GetCost();
+	+ n_weight*n_trajectory_->GetCost()
+	+ 20*abs(lane_idx_ - 2);
 }
 
 double trajectory::CalTimeHorizon( ){

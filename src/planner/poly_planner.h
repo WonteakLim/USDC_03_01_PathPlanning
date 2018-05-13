@@ -41,6 +41,7 @@ class poly_planner{
 		planning_object::object_manager* object_list);
 
 	bool SelOptTrajectory(
+		double lookahead_time,
 		candidate_p_set* s_candidates,
 		candidate_p_set* n_candidates,
 		double s_weight, double n_weight,
@@ -63,8 +64,8 @@ class poly_planner{
 
     private:
 	// weight
-	double s_weight_ = 10.0;
-	double n_weight_ = 0.1;
+	double s_weight_ = 1.0;
+	double n_weight_ = 5.0;
 
 	double weight_s_jerk_ = 10.0;
 	double weight_s_time_ = 10.0;

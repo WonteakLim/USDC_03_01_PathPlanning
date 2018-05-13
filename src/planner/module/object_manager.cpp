@@ -75,6 +75,29 @@ obj_predict_t object_manager::PredictMotion( obj_state_t state, double dt, doubl
     return predicted_trajectory;
 }
 
+obj_predict_t object_manager::PredictMotion( obj_state_t state, double dt, double start_time, double end_time){
+    obj_predict_t predicted_trajectory;
+    int num_steps = (int)((end_time-start_time) / dt);
+    
+    for( int i=0; i<num_steps ; i++){
+	double time = start_time + dt * i;
+	double s = state.s + state.spd * time;
+	double n = state.n;
+	std::vector<double> xy = map_.ToCartesian( s, n );
+	obj_stateT_t stateT;
+	stateT.time = time;
+	stateT.x = xy[0];
+	stateT.y = xy[1];
+	stateT.s = s;
+	stateT.n = n;
+	stateT.spd = state.spd;
+	stateT.yaw = map_.GetSlope( s );
+
+	predicted_trajectory.push_back( stateT );
+    }
+    return predicted_trajectory;
+}
+
 planning_object_list_t object_manager::GetWatchable( double s, double n ){
     const double max_view_dist = 100.0;
     const int max_view_lane = 1;
@@ -167,16 +190,16 @@ planning_object_list_t object_manager::GetObjectsInLane( int lane_idx ){
     return list;
 }
 
-bool object_manager::IsCollision( double dt,
+bool object_manager::IsCollision( double start_time,
+	double dt,
 	std::vector<double> trj_s, 
 	std::vector<double> trj_n, 
 	double length, double width){
     std::vector<int> size_list = { (int)trj_s.size(), (int)trj_n.size()};
     std::sort( size_list.begin(), size_list.end() );
     int num_node = size_list.front();
-
     if( num_node == 0 ) return false;
-    double T = dt * (num_node-1);
+    double T = dt * num_node;
 
     std::vector<double> sn_start = { trj_s[0], trj_n[0] };
     planning_object_list_t watchable = GetWatchable( sn_start[0], sn_start[1] );
@@ -184,9 +207,11 @@ bool object_manager::IsCollision( double dt,
     // predict future motino of watchable objects and collision check
     bool is_collision = false;
     for( int i=0; i< watchable.size() ; i++){
-	if( watchable[i].prediction_dt_ != dt ){
-	    watchable[i].trajectory = PredictMotion( watchable[i], dt, T);
+        if( watchable[i].prediction_dt_ != dt ){
+	    watchable[i].trajectory = PredictMotion( watchable[i], dt, start_time, start_time+T);
 	}
+
+	std::cout << "watchable(d/n): " << watchable[i].s-sn_start[0] << "/" << watchable[i].n << std::endl;
 
 	std::vector<double> path_s;
 	std::vector<double> path_n;
@@ -198,6 +223,7 @@ bool object_manager::IsCollision( double dt,
 	
 	int check = watchable[i].collision_checker_.CollisionIndex( trj_s, trj_n, length, width );
 	if( check != -1 ){
+	    std::cout << "collision" << std::endl;
 	    is_collision = true;
 	    break;
 	}
