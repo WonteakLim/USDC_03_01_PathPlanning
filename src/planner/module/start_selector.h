@@ -7,8 +7,6 @@
 // class: discrete_trajectory
 class discrete_trajectory{
     public:
-        discrete_trajectory( double dt, std::vector<double> path_x, std::vector<double> path_y,
-		std::vector<state> path_s, std::vector<state> path_n	);
 	discrete_trajectory( double dt, std::vector<cartesian_state> path );
 	~discrete_trajectory() {};
 
@@ -18,10 +16,6 @@ class discrete_trajectory{
 	bool valid_trajectory_ = false;
 	double time_interval_ = -1.0;
 
-	std::vector<double> path_x_;
-	std::vector<double> path_y_;
-	std::vector<state> path_s_;
-	std::vector<state> path_n_;
 	std::vector<cartesian_state> path_;
 
 	int num_node_ = -1;
@@ -34,20 +28,11 @@ class discrete_trajectory{
 	int		    FindClosestNodeIdx(	double pose_x, double pose_y );
 
 	cartesian_state	    GetNode( int idx );	
-	sn_state	    GetNodeSN( int idx );
 
 	inline int	    GetNumNode(){return num_node_; }
 	inline double	    GetTimeInterval() { return time_interval_; }
 
     private:	
-	std::vector<double> GetSpd( double dt,
-		std::vector<double> s1, 
-		std::vector<double> s2);
-	std::vector<double> GetAcc( double dt,
-		std::vector<double> s1, 
-		std::vector<double> s2, 
-		std::vector<double> s3);
-
 	double GetDistance( double x1, double y1, double x2, double y2 );
 };
 
@@ -59,15 +44,6 @@ class start_selector{
 	~start_selector() {}
 
     public:
-	sn_state SelectStartNode( 
-		Map* map,
-		double prev_path_dt,
-		std::vector<double> prev_path_x, // x positions of nodes in a previous path
-		std::vector<double> prev_path_y, // y positions of nodes in a previous path
-		std::vector<state> prev_path_s,
-		std::vector<state> prev_path_n,
-		std::vector<double> ego_pose,	// x, y, yaw, spd_x, acc_x
-		double lookahead );
     	sn_state SelectStartNode( 
 		Map* map,
 		double prev_path_dt,
