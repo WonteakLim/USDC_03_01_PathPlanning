@@ -54,7 +54,7 @@ void poly_planner::Run( Map* map,
     // select optimal trajectory
     std::cout << "optimal selection" << std::endl;
     trajectory opt_trajectory;
-    if( SelOptTrajectory( lookahead_time, &s_candidates, &n_candidates, s_weight_, n_weight_, &object_list, opt_trajectory ) == true){
+    if( SelOptTrajectory( map, lookahead_time, &s_candidates, &n_candidates, s_weight_, n_weight_, &object_list, opt_trajectory ) == true){
 	UpdateTrajectory( map, opt_trajectory, {ego_pose[5], ego_pose[6]}, {start_sn.s[0], start_sn.n[0]}, path_dt );
     }
 
@@ -94,13 +94,14 @@ void poly_planner::BuildCandidate(Map* map,
 }
 
 bool poly_planner::SelOptTrajectory(
+	Map* map,
 	double lookahead_time,
 	candidate_p_set* s_candidates, candidate_p_set* n_candidates,
 	double s_weight, double n_weight,
 	planning_object::object_manager* objects,
 	trajectory& opt_trajectory){
 
-    return optimal_selector_.Optimization( lookahead_time, s_candidates, n_candidates,
+    return optimal_selector_.Optimization( map, lookahead_time, s_candidates, n_candidates,
 	    s_weight, n_weight,
 	    objects,
 	    opt_trajectory);

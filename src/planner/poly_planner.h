@@ -38,6 +38,7 @@ class poly_planner{
 		planning_object::object_manager* object_list);
 
 	bool SelOptTrajectory(
+		Map* map,
 		double lookahead_time,
 		candidate_p_set* s_candidates,
 		candidate_p_set* n_candidates,

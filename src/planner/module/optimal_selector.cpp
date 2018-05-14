@@ -12,6 +12,7 @@ optimal_selector::~optimal_selector(){
 }
 
 bool optimal_selector::Optimization( 
+			Map* map,
 			double lookahead_time,
 			candidate_p_set* s_candidate,
 			 candidate_p_set* n_candidate,
@@ -28,20 +29,24 @@ bool optimal_selector::Optimization(
 	print( &candidates[i] );
     }
 
-    bool is_collision = true;
+    bool is_valid = false;
     for( int i=0; i<candidates.size(); i++){
 	std::vector<double> path_s, path_n;
 	candidates[i].GetDiscretePathSN( collision_check_resol_, collision_check_time_, path_s, path_n );
-	if( objects->IsCollision( lookahead_time, collision_check_resol_, path_s, path_n, vehicle_length_, vehicle_width_ ) == false){
+
+	bool is_collision = objects->IsCollision( lookahead_time, collision_check_resol_, path_s, path_n, vehicle_length_, vehicle_width_ );
+	bool is_valid_k = IsValidCurvature( map, &candidates[i], 0.2, 2.0 );
+
+	if( (is_collision == false)
+	   && (is_valid_k == true ) ){
 	    std::cout << "#### optimal ######" << std::endl;
 	    print( &candidates[i] );
 	    opt_trajectory = candidates[i];
-	    is_collision = false;
-	    //return true;
+	    is_valid = true;
 	    break;
 	}
     }
-    return !is_collision;
+    return is_valid;
 }
 
 trajectory_set optimal_selector::SN2Trajectory(	candidate_p_set* s_candidate,
@@ -67,6 +72,22 @@ trajectory_set optimal_selector::SN2Trajectory(	candidate_p_set* s_candidate,
     std::sort( sn_candidates.begin(), sn_candidates.end() );
 
     return sn_candidates;
+}
+
+bool optimal_selector::IsValidCurvature( Map* map, trajectory* p_trajectory, double t_resol, double T ){
+    int node_num = (int)(T/t_resol);
+    for( int i=0; i<node_num; i++){
+	double t = i * t_resol;
+	state s = p_trajectory->GetpTrajectoryS()->GetState(t);
+	state n = p_trajectory->GetpTrajectoryN()->GetState(t);
+	std::vector<double> state = map->ToCartesianAllT( {s[0], s[1], s[2], n[0], n[1], n[2]} );
+	double k = state[3];
+	std::cout << "########################## curvature: " << k << std::endl;
+	if( abs(k) > curvature_limit_ ){
+	    return false;
+	}
+    }
+    return true;
 }
 
 void optimal_selector::print( trajectory* trj ){
