@@ -25,10 +25,7 @@ class poly_planner{
     private:
 	sn_state SelStartState(Map* map, 
 		double path_dt,
-		std::vector<double> path_x, 
-		std::vector<double> path_y,
-		std::vector<state> path_s,
-		std::vector<state> path_n,
+		std::vector<cartesian_state> path,
 		std::vector<double> ego_pose,
 		double lookahead_time);
 
@@ -61,6 +58,7 @@ class poly_planner{
 	std::vector<state> path_n_;
 	std::vector<double> path_x_;
 	std::vector<double> path_y_;
+	std::vector<cartesian_state> path_;
 
     private:
 	// weight
@@ -78,6 +76,6 @@ class poly_planner{
 	double weight_n_terminal_ = 1.0;
 
     public:
-	inline std::vector<double> GetTrjX() { return path_x_; }
-	inline std::vector<double> GetTrjY() { return path_y_; }
+	std::vector<double> GetTrjX();	
+	std::vector<double> GetTrjY();
 };

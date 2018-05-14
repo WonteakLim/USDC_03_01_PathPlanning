@@ -8,6 +8,7 @@ poly_planner::poly_planner(){
     path_y_.clear();
     path_s_.clear();
     path_n_.clear();
+    path_.clear();
 }
 
 void poly_planner::Run( Map* map,
@@ -29,9 +30,7 @@ void poly_planner::Run( Map* map,
 
     // start poisition
     std::cout << "start position" << std::endl;
-    sn_state start_sn = SelStartState(map, path_dt,
-					path_x_, path_y_,
-					path_s_, path_n_,
+    sn_state start_sn = SelStartState(map, path_dt, path_,
 					ego_pose, lookahead_time);
     std::vector<double> xy = map->ToCartesian( start_sn.s[0], start_sn.n[0] );
     std::cout << "start node (s/ds/dds): " << start_sn.s[0] << ", " << start_sn.s[1] << ", " << start_sn.s[2] << std::endl;
@@ -70,17 +69,13 @@ void poly_planner::Run( Map* map,
 
 sn_state poly_planner::SelStartState(Map* map,
 	double path_dt,
-	std::vector<double> path_x,
-	std::vector<double> path_y,
-	std::vector<state> path_s,
-	std::vector<state> path_n,
+	std::vector<cartesian_state> path,
 	std::vector<double> ego_pose,
 	double lookahead_time){
     // return start node
     return start_selector_.SelectStartNode( map, 
 	    path_dt, 
-	    path_x, path_y,
-	    path_s, path_n,
+	    path,
 	    ego_pose,
 	    lookahead_time);
 }
@@ -131,6 +126,7 @@ void poly_planner::UpdateTrajectory( Map* map, trajectory trj, std::vector<doubl
 
     std::vector<double> path_x, path_y;
     std::vector<state> path_s, path_n;
+    std::vector<cartesian_state> path;
 
     int start_node_id = FindPathNodeSN( start_sn );
     int ego_node_id = FindPathNodeSN( ego_sn );
@@ -142,6 +138,8 @@ void poly_planner::UpdateTrajectory( Map* map, trajectory trj, std::vector<doubl
 	    path_y.push_back( path_y_[i] );
 	    path_s.push_back( path_s_[i] );
 	    path_n.push_back( path_n_[i] );
+
+	    path.push_back( path_[i] );
 	}
     }
     double time_horizon = trj.GetTimeHorizon();
@@ -154,6 +152,17 @@ void poly_planner::UpdateTrajectory( Map* map, trajectory trj, std::vector<doubl
 	path_n.push_back( sn_state.n );
 	path_x.push_back( xy[0] );
 	path_y.push_back( xy[1] );
+
+	std::vector<double> cartesian = map->ToCartesianAllT({ sn_state.s[0], sn_state.s[1], sn_state.s[2],
+							       sn_state.n[0], sn_state.n[1], sn_state.n[2] } );
+	cartesian_state new_node;
+	new_node.x = cartesian[0];
+	new_node.y = cartesian[1];
+	new_node.yaw = cartesian[2];
+	new_node.k = cartesian[3];
+	new_node.spd = cartesian[4];
+	new_node.acc = cartesian[5];
+	path.push_back( new_node );
     }
 
     std::cout << "### UPDATE ##### : " << path_x.size() << std::endl;
@@ -163,6 +172,7 @@ void poly_planner::UpdateTrajectory( Map* map, trajectory trj, std::vector<doubl
     path_y_ = path_y;
     path_s_ = path_s;
     path_n_ = path_n;
+    path_ = path;
 }
 
 int  poly_planner::FindPathNodeSN( std::vector<double> searching_sn){
@@ -183,4 +193,20 @@ int  poly_planner::FindPathNodeSN( std::vector<double> searching_sn){
 	}	
     }
     return min_idx;   
+}
+
+std::vector<double> poly_planner::GetTrjX(){
+    std::vector<double> x;
+    for( int i=0; i<path_.size() ; i++){
+	x.push_back( path_[i].x );
+    }
+    return x;
+}
+
+std::vector<double> poly_planner::GetTrjY(){
+    std::vector<double> y;
+    for( int i=0; i<path_.size() ; i++){
+	y.push_back( path_[i].y );
+    }
+    return y;
 }

@@ -24,6 +24,20 @@ path_n_( path_n ){
     }
 }
 
+discrete_trajectory::discrete_trajectory( double dt, std::vector<cartesian_state> path )
+: time_interval_(dt),
+path_( path )
+{
+    if( (path.size() > 0)
+	&& (dt > 0)){
+	num_node_ = path.size();
+	valid_trajectory_ = true;
+    }
+    else{
+	valid_trajectory_ = false;
+    }
+}
+
 bool discrete_trajectory::IsValid(void){
     return (valid_trajectory_ | (num_node_ > 0));
 }
@@ -43,66 +57,33 @@ bool discrete_trajectory::IsOnTrajectory(double pose_x, double pose_y){
 
 std::vector<double> discrete_trajectory::FindClosestNode( double pose_x, double pose_y ){
     int min_idx = FindClosestNodeIdx( pose_x, pose_y );
-    return { path_x_[min_idx], path_y_[min_idx] };
+    //return { path_x_[min_idx], path_y_[min_idx] };
+    return { path_[min_idx].x, path_[min_idx].y };
 }
 
 int discrete_trajectory::FindClosestNodeIdx( double pose_x, double pose_y ){
     double min_dist = 10000.0;
     int min_idx = 0;
-    for( int i=0; i<path_x_.size(); i++){
-	double dist = GetDistance( path_x_[i], path_y_[i], pose_x, pose_y );
+//   for( int i=0; i<path_x_.size(); i++){
+//	double dist = GetDistance( path_x_[i], path_y_[i], pose_x, pose_y );
+//	if( min_dist > dist ){
+//	    min_dist = dist;
+//	    min_idx = i;
+//	}
+//    }
+    for( int i=0; i<path_.size(); i++){
+	double dist = GetDistance( path_[i].x, path_[i].y, pose_x, pose_y );
 	if( min_dist > dist ){
 	    min_dist = dist;
 	    min_idx = i;
 	}
     }
+
     return min_idx;
 }
 
-xy_state discrete_trajectory::GetNode( int idx ){
-    // Get xy state
-    xy_state source_xy;
-    source_xy.x.push_back( path_x_[idx] );
-    source_xy.y.push_back( path_y_[idx] );
-
-    if( (idx!=0) && (idx != path_x_.size()-1 )  ){
-	std::vector<double> xy_spd = GetSpd( time_interval_,
-		{path_x_[idx], path_y_[idx]}, {path_x_[idx+1], path_y_[idx+1]} );
-	std::vector<double> xy_acc = GetAcc( time_interval_,
-		{ path_x_[idx-1], path_y_[idx-1] },
-		{ path_x_[idx], path_y_[idx]},
-		{ path_x_[idx+1], path_y_[idx+1]} );
-
-	source_xy.x.push_back( xy_spd[0] );
-	source_xy.x.push_back( xy_acc[0] );
-	source_xy.y.push_back( xy_spd[1] );
-	source_xy.y.push_back( xy_acc[1] );
-    }
-    else if( idx == 0 ){	
-	std::vector<double> xy_spd = GetSpd( time_interval_,
-		{path_x_[idx], path_y_[idx]}, {path_x_[idx+1], path_y_[idx+1]} );
-	std::vector<double> xy_acc = GetAcc( time_interval_,
-		{ path_x_[idx], path_y_[idx] },
-		{ path_x_[idx+1], path_y_[idx+1]},
-		{ path_x_[idx+2], path_y_[idx+2]} );
-	source_xy.x.push_back( xy_spd[0] );
-	source_xy.x.push_back( xy_acc[0] );
-	source_xy.y.push_back( xy_spd[1] );
-	source_xy.y.push_back( xy_acc[1] );
-    }
-    else{
-	std::vector<double> xy_spd = GetSpd( time_interval_,
-		{path_x_[idx-1], path_y_[idx-1]}, {path_x_[idx], path_y_[idx]} );
-	std::vector<double> xy_acc = GetAcc( time_interval_,
-		{ path_x_[idx-2], path_y_[idx-2] },
-		{ path_x_[idx-1], path_y_[idx-1]},
-		{ path_x_[idx], path_y_[idx]} );
-	source_xy.x.push_back( xy_spd[0] );
-	source_xy.x.push_back( xy_acc[0] );
-	source_xy.y.push_back( xy_spd[1] );
-	source_xy.y.push_back( xy_acc[1] );
-    }
-    return source_xy;
+cartesian_state discrete_trajectory::GetNode( int idx ){
+    return path_[idx];
 }
 
 sn_state discrete_trajectory::GetNodeSN( int idx ){
@@ -179,6 +160,43 @@ sn_state start_selector::SelectStartNode(
     return start_node;
 }
 
+sn_state start_selector::SelectStartNode(
+		Map* map,
+		double prev_path_dt,
+		std::vector<cartesian_state> path,
+		std::vector<double> ego_pose,
+		double lookahead ){
+    sn_state start_node;
+
+    double ego_x = ego_pose[0];
+    double ego_y = ego_pose[1];
+    double ego_yaw = ego_pose[2];
+    double ego_spd = ego_pose[3];
+    double ego_acc = ego_pose[4];
+
+    discrete_trajectory prev_trj( prev_path_dt, path );
+
+    // check if previous trajectory is valid or not
+    bool is_valid_trj = prev_trj.IsValid();
+    bool is_on_trj = prev_trj.IsOnTrajectory( ego_x, ego_y );
+      
+    // start node selection
+    if( (is_valid_trj == true ) && 
+	    (is_on_trj == true) ){
+	// from the previous trajectory
+	start_node = FindLookaheadNode( map, &prev_trj,
+		ego_x, ego_y, ego_yaw, lookahead );
+    }
+    else{
+	// from ego position
+	state x = {ego_x, ego_spd*cos(ego_yaw), ego_acc*cos(ego_yaw)};
+	state y = {ego_y, ego_spd*sin(ego_yaw), ego_acc*sin(ego_yaw)};
+	start_node = ConvXY2SN( map, {x,y} );
+    }
+    return start_node;
+}
+
+
 sn_state start_selector::FindLookaheadNode( Map* map,
 	discrete_trajectory* trj,
 	double ego_x, double ego_y, double ego_yaw, double lookahead ){
@@ -195,7 +213,14 @@ sn_state start_selector::FindLookaheadNode( Map* map,
     }
     // get the lookahead node
     //xy_state lookahead_node_xy = trj->GetNode( effective_idx );
-    sn_state lookahead_node_sn = trj->GetNodeSN( effective_idx );
+    //sn_state lookahead_node_sn = trj->GetNodeSN( effective_idx );
+    cartesian_state lookahead_xy = trj->GetNode( effective_idx );
+    std::vector<double> node_sn = map->ToFrenetAllT( {lookahead_xy.x, lookahead_xy.y,lookahead_xy.yaw,
+						    lookahead_xy.k, lookahead_xy.spd,lookahead_xy.acc,} );
+
+    sn_state lookahead_node_sn;
+    lookahead_node_sn.s = {node_sn[0], node_sn[1], node_sn[2]};
+    lookahead_node_sn.n = {node_sn[3], node_sn[4], node_sn[5]};
 
     return lookahead_node_sn;
 }

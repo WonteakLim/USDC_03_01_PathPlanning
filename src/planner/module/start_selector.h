@@ -9,6 +9,7 @@ class discrete_trajectory{
     public:
         discrete_trajectory( double dt, std::vector<double> path_x, std::vector<double> path_y,
 		std::vector<state> path_s, std::vector<state> path_n	);
+	discrete_trajectory( double dt, std::vector<cartesian_state> path );
 	~discrete_trajectory() {};
 
     private:
@@ -21,6 +22,7 @@ class discrete_trajectory{
 	std::vector<double> path_y_;
 	std::vector<state> path_s_;
 	std::vector<state> path_n_;
+	std::vector<cartesian_state> path_;
 
 	int num_node_ = -1;
 
@@ -31,7 +33,7 @@ class discrete_trajectory{
 	std::vector<double> FindClosestNode( double pose_x, double pose_y );
 	int		    FindClosestNodeIdx(	double pose_x, double pose_y );
 
-	xy_state	    GetNode( int idx );	
+	cartesian_state	    GetNode( int idx );	
 	sn_state	    GetNodeSN( int idx );
 
 	inline int	    GetNumNode(){return num_node_; }
@@ -64,6 +66,12 @@ class start_selector{
 		std::vector<double> prev_path_y, // y positions of nodes in a previous path
 		std::vector<state> prev_path_s,
 		std::vector<state> prev_path_n,
+		std::vector<double> ego_pose,	// x, y, yaw, spd_x, acc_x
+		double lookahead );
+    	sn_state SelectStartNode( 
+		Map* map,
+		double prev_path_dt,
+		std::vector<cartesian_state> path,
 		std::vector<double> ego_pose,	// x, y, yaw, spd_x, acc_x
 		double lookahead );
 

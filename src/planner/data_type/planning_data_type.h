@@ -5,6 +5,15 @@
 
 typedef std::vector<double> state;
 
+struct cartesian_state{
+    double x;
+    double y;
+    double yaw;
+    double k;
+    double spd;
+    double acc;
+};
+
 struct xy_state{
     state x;
     state y;
