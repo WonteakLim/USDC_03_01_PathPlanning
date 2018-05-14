@@ -33,11 +33,7 @@ class candidate_builder{
 
 
     private:
-
 	// s variants
-	const double default_dist_gap_ = 10.0;
-	const double acc_time_gap_ = 2.0;
-
 	candidate_weight weight_;
 	
 	poly_candidate_set KeepSpeedS(int lane_idx, 
@@ -63,16 +59,22 @@ class candidate_builder{
 
 	// feasibility check
     private:
-	const double ACC_LIMIT_S = 10.0;
-	const double DCC_LIMIT_S = -10.0;
-	const double ACC_LIMIT_N = 2.0;
-	const double JERK_LIMIT_S = 80.0;
-	const double JERK_LIMIT_N = 80.0;
-    private:
 	poly_candidate_set FilterFeasibleS( poly_candidate_set* variants );
 	poly_candidate_set FilterFeasibleN( poly_candidate_set* variants );
 
 	// local functions
     private:
-	void AddCandidate( poly_candidate_set& origin, poly_candidate_set added_set ); 
+	void AddCandidate( poly_candidate_set& origin, poly_candidate_set added_set );
+
+	// ========================================	
+	// Configuration
+    private:
+	const double default_dist_gap_ = 10.0;
+	const double acc_time_gap_ = 2.0;
+
+	const double ACC_LIMIT_S = 10.0;
+	const double DCC_LIMIT_S = -10.0;
+	const double ACC_LIMIT_N = 2.0;
+	const double JERK_LIMIT_S = 80.0;
+	const double JERK_LIMIT_N = 80.0;
 };

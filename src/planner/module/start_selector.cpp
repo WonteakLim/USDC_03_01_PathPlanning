@@ -3,9 +3,10 @@
 
 // ==============================
 // discrete_trajectory
-discrete_trajectory::discrete_trajectory( double dt, std::vector<cartesian_state> path )
+discrete_trajectory::discrete_trajectory( double dt, std::vector<cartesian_state> path, double in_range )
 : time_interval_(dt),
-path_( path )
+path_( path ),
+threshold_valid_offset_( in_range )
 {
     if( (path.size() > 0)
 	&& (dt > 0)){
@@ -28,7 +29,7 @@ bool discrete_trajectory::IsOnTrajectory(double pose_x, double pose_y){
     // Get a distance
     double dist = GetDistance( pose_x, pose_y, closest_node_xy[0], closest_node_xy[1] );
     // Determine if the offset is valid or not
-    if( dist > THRESHOLD_VALID_OFFSET )
+    if( dist > threshold_valid_offset_ )
 	return false;
     else
 	return true;        
@@ -78,7 +79,7 @@ sn_state start_selector::SelectStartNode(
     double ego_spd = ego_pose[3];
     double ego_acc = ego_pose[4];
 
-    discrete_trajectory prev_trj( prev_path_dt, path );
+    discrete_trajectory prev_trj( prev_path_dt, path, in_range_bnd_ );
 
     // check if previous trajectory is valid or not
     bool is_valid_trj = prev_trj.IsValid();

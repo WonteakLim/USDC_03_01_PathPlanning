@@ -35,7 +35,7 @@ bool optimal_selector::Optimization(
 	candidates[i].GetDiscretePathSN( collision_check_resol_, collision_check_time_, path_s, path_n );
 
 	bool is_collision = objects->IsCollision( lookahead_time, collision_check_resol_, path_s, path_n, vehicle_length_, vehicle_width_ );
-	bool is_valid_k = IsValidCurvature( map, &candidates[i], 0.2, 2.0 );
+	bool is_valid_k = IsValidCurvature( map, &candidates[i], curvature_check_t_resol_, curvature_check_T_ );
 
 	if( (is_collision == false)
 	   && (is_valid_k == true ) ){
@@ -82,7 +82,6 @@ bool optimal_selector::IsValidCurvature( Map* map, trajectory* p_trajectory, dou
 	state n = p_trajectory->GetpTrajectoryN()->GetState(t);
 	std::vector<double> state = map->ToCartesianAllT( {s[0], s[1], s[2], n[0], n[1], n[2]} );
 	double k = state[3];
-	std::cout << "########################## curvature: " << k << std::endl;
 	if( abs(k) > curvature_limit_ ){
 	    return false;
 	}

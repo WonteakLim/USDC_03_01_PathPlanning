@@ -7,11 +7,13 @@
 // class: discrete_trajectory
 class discrete_trajectory{
     public:
-	discrete_trajectory( double dt, std::vector<cartesian_state> path );
+	discrete_trajectory( double dt, std::vector<cartesian_state> path, double in_range = 2.0 );
 	~discrete_trajectory() {};
 
+	// cfg
     private:
-	const double THRESHOLD_VALID_OFFSET = 2.0;
+	double threshold_valid_offset_ = 2.0;
+
     private:	
 	bool valid_trajectory_ = false;
 	double time_interval_ = -1.0;
@@ -60,6 +62,14 @@ class start_selector{
 		double ego_x, double ego_y, double ego_yaw, double lookahead );	
 	
 	sn_state ConvXY2SN( Map* map, xy_state );
+
+
+	// ========================
+	// Configuration
+    private:
+	double in_range_bnd_ = 2.0;
+    public:
+	inline void SetCfg_InRangeDist( double dist ) { in_range_bnd_ = dist; }
 };
 
 

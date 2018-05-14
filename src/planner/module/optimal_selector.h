@@ -24,13 +24,25 @@ class optimal_selector{
 					double s_weight, double n_weight);
 
 	bool IsValidCurvature( Map* map, trajectory* p_trajectory, double t_resol, double T );
-	// Collision cehck
+
+	// Configuration
     private:
 	double collision_check_resol_ = 0.1;
 	double collision_check_time_ = 3.0;
 	double vehicle_length_ = 6.0;
 	double vehicle_width_ = 3.0;
+	double curvature_check_t_resol_ = 0.2;
+	double curvature_check_T_ = 2.0;
 	double curvature_limit_ = 0.167;
+
+    public:
+	inline void	SetCfgCol_TimeResol( double resol )	{ collision_check_resol_ = resol; }
+	inline void	SetCfgCol_TimeRange( double T )		{ collision_check_time_ = T; }
+	inline void	SetCfgCol_VehWidth( double width )	{ vehicle_width_ = width; }
+	inline void	SetCfgCol_VehLength( double length )	{ vehicle_length_ = length; }
+	inline void	SetCfgK_TimeResol( double resol )	{ curvature_check_t_resol_ = resol; }
+        inline void	SetCfgK_TimeRange( double T )		{ curvature_check_T_ = T; }
+	inline void	SetCfgK_Limit( double k )		{ curvature_limit_ = k; }
 
     private:
 	void print( trajectory* trj);
