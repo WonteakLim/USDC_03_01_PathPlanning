@@ -22,6 +22,11 @@ void poly_planner::Run( Map* map,
     // path planning
     // ================
 
+    // test
+    std::vector<double> ref_state_sn = {351, -1.3, 10.5555, 8, -1.5, 1.7866};
+    std::vector<double> con_xy = map->ToCartesianAllT( ref_state_sn );
+    std::vector<double> con_sn = map->ToFrenetAllT( con_xy );
+
     // start poisition
     std::cout << "start position" << std::endl;
     sn_state start_sn = SelStartState(map, path_dt,

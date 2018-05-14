@@ -234,6 +234,7 @@ void spline::set_points(const std::vector<double>& x,
         }
     }
     // for left extrapolation coefficients
+    m_a0 = (m_force_linear_extrapolation==false) ? m_a[0] : 0.0;
     m_b0 = (m_force_linear_extrapolation==false) ? m_b[0] : 0.0;
     m_c0 = m_c[0];
 
@@ -273,7 +274,7 @@ double spline::operator() (double x) const
 
 std::vector<double> spline::derivative (double x, int up_to) const
 {
-    assert(up_to==1 ||up_to==2 );
+    assert(up_to==1 ||up_to==2 || up_to==3);
     size_t n=m_x.size();
     // find the closest point m_x[idx] < x, idx=0 even if x<m_x[0]
     std::vector<double>::const_iterator it;
@@ -306,6 +307,20 @@ std::vector<double> spline::derivative (double x, int up_to) const
             interpol = 6*m_a[idx]*h + 2*m_b[idx];
         }
         result.push_back(interpol);
+    }
+    if( up_to > 2){
+	if(x < m_x[0]) {
+            // extrapolation to the left
+            interpol = 6*m_a0;
+        } else if(x > m_x[n-1]) {
+            // extrapolation to the right
+            interpol = 6*m_a[n-1];
+        } else {
+            // interpolation
+            interpol = 6*m_a[idx];
+        }
+        result.push_back(interpol);
+
     }
     return result;
 }
@@ -494,6 +509,125 @@ std::vector<double> Map::ToCartesian(double s, double d) {
 	y -= d*sin(norm);
 
 	return { x, y };
+}
+
+// ToFrenetAll
+// convert cartesian state into frenet state
+// 
+std::vector<double> Map::ToFrenetAllS( std::vector<double> state_cartesian ){
+    double x = state_cartesian[0];
+    double y = state_cartesian[1];
+    double yaw = state_cartesian[2];
+    double k = state_cartesian[3];
+    double v = state_cartesian[4];
+    double a = state_cartesian[5];
+
+    std::vector<double> sn = ToFrenet( x, y );
+    double s = sn[0];
+    double n = sn[1];
+
+    double yaw_r = GetSlope( s );
+    double k_r = GetCurvature( s );
+
+    // derivative of k_r
+    std::vector<double> dx = x_s_.derivative( s, 3 );
+    std::vector<double> dy = y_s_.derivative( s, 3 );
+
+    double f_k = dx[0]*dy[1] - dy[0]*dx[1];
+    double g_k = pow( dx[0]*dx[0] + dy[0]*dy[0], 1.5 );
+    double df_k = dx[0]*dx[2] - dx[2]*dy[0];
+    double dg_k = 3 * pow( dx[0]*dx[0]+dy[0]*dy[0], 0.5 ) * ( dx[0]*dx[1] + dy[0]*dy[1] );
+    double dkr_s = ( df_k*g_k - f_k*dg_k ) / ( g_k*g_k );   
+
+    // yaw_delta
+    double yaw_delta = yaw - yaw_r;
+
+    // ds
+    double ds = v*cos(yaw_delta) / (1-k_r*n);
+
+    // dn_s
+    double dn_s = (1-k_r*n) * tan( yaw_delta );
+
+    // dds
+    double param = (1-k_r*n) / cos( yaw_delta );
+    double dds = (1/param) * ( a - ds*ds/cos(yaw_delta)*( ((1-k_r*n) * tan(yaw_delta) * (k*param - k_r)) - (dkr_s*n+k_r*dn_s)  ) );
+
+    // ddn_s
+    double ddn_s = -( dkr_s * n + k_r * dn_s) * tan(yaw_delta)
+	+ (param/cos(yaw_delta)) * ( k*param - k_r );
+
+    return {s, ds, dds, n, dn_s, ddn_s};
+}
+
+// ToCartesianAll
+// convert frenet state into cartesian
+// find x, y, k, k'
+// 
+std::vector<double> Map::ToCartesianAllS( std::vector<double> state_frenet ){
+    double s = FrenetSCycle( state_frenet[0] );
+    double ds = state_frenet[1];
+    double dds = state_frenet[2];
+    double n = state_frenet[3];
+    double dn_s = state_frenet[4];
+    double ddn_s = state_frenet[5];
+
+    std::vector<double> xy = ToCartesian( s, n );
+    double yaw_r = GetSlope( s );
+    double k_r = GetCurvature( s );
+ 
+    // derivative of k_r
+    std::vector<double> dx = x_s_.derivative( s, 3 );
+    std::vector<double> dy = y_s_.derivative( s, 3 );
+
+    double f_k = dx[0]*dy[1] - dy[0]*dx[1];
+    double g_k = pow( dx[0]*dx[0] + dy[0]*dy[0], 1.5 );
+    double df_k = dx[0]*dx[2] - dx[2]*dy[0];
+    double dg_k = 3 * pow( dx[0]*dx[0]+dy[0]*dy[0], 0.5 ) * ( dx[0]*dx[1] + dy[0]*dy[1] );
+    double dkr_s = ( df_k*g_k - f_k*dg_k ) / ( g_k*g_k );   
+
+    // yaw
+    double yaw_delta = atan2( dn_s, 1 - k_r * n );
+    double yaw = yaw_r + yaw_delta;
+
+    // spd
+    double spd = ds * sqrt( (1-k_r*n)*(1-k_r*n) + dn_s*dn_s );
+
+    // curvature
+    double param_k = cos( yaw_delta ) / ( 1 - k_r * n );
+    double k = param_k *
+	( k_r + param_k * cos(yaw_delta)*(ddn_s + ( dkr_s*n+k_r*dn_s)*tan(yaw_delta) ) );
+    double a = dds / param_k
+	+ (ds*ds/cos(yaw_delta)) * ( ((1-k_r*n)*tan(yaw_delta)*(k/param_k - k_r)) - (dkr_s*n+k_r*dn_s) );
+    
+    return {xy[0], xy[1], yaw, k, spd, a};
+}
+
+std::vector<double> Map::ToFrenetAllT( std::vector<double> state_cartesian ){
+    std::vector<double> state_s = ToFrenetAllS( state_cartesian );
+    double ds = state_s[1];
+    double dds = state_s[2];
+    double dn_s = state_s[4];
+    double ddn_s = state_s[5];
+    
+    double dn = ds * dn_s;
+    double ddn = dds*dn_s + ds*ds*ddn_s;
+    state_s[4] = dn;
+    state_s[5] = ddn;
+    return state_s;
+}
+
+std::vector<double> Map::ToCartesianAllT( std::vector<double> state_frenet ){
+    double ds = state_frenet[1];
+    double dds = state_frenet[2];
+    double dn = state_frenet[4];
+    double ddn = state_frenet[5];
+
+    double dn_s = dn / ds;
+    double ddn_s = (ddn-dds*dn_s) / (ds*ds);
+    
+    std::vector<double> state_s = {state_frenet[0], state_frenet[1], state_frenet[2],
+				state_frenet[3], dn_s, ddn_s};
+    return ToCartesianAllS( state_s );
 }
 
 double Map::GetSlope(double s) {

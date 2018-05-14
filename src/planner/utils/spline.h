@@ -80,7 +80,7 @@ private:
     // interpolation parameters
     // f(x) = a*(x-x_i)^3 + b*(x-x_i)^2 + c*(x-x_i) + y_i
     std::vector<double> m_a,m_b,m_c;        // spline coefficients
-    double  m_b0, m_c0;                     // for left extrapol
+    double  m_a0, m_b0, m_c0;                     // for left extrapol
     bd_type m_left, m_right;
     double  m_left_value, m_right_value;
     bool    m_force_linear_extrapolation;
@@ -141,6 +141,11 @@ struct Map
   		// Coordinate conversion
   		std::vector<double> ToFrenet(double x, double y);
   		std::vector<double> ToCartesian(double s, double d);
+
+		std::vector<double> ToFrenetAllS( std::vector<double> state_cartesian );
+		std::vector<double> ToCartesianAllS( std::vector<double> state_frenet );
+		std::vector<double> ToFrenetAllT( std::vector<double> state_cartesian );
+		std::vector<double> ToCartesianAllT( std::vector<double> state_frenet );
 
   		double SubstractS(double minuend, double subtrahend);
   		double GetSlope(double s);
