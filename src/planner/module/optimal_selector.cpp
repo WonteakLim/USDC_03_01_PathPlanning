@@ -4,7 +4,7 @@
 #include <algorithm>
 
 optimal_selector::optimal_selector(){
-
+    bool is_config = config_parser_.Init( "../src/planner/config/config_selection.ini" );
 }
 
 optimal_selector::~optimal_selector(){
@@ -16,13 +16,15 @@ bool optimal_selector::Optimization(
 			double lookahead_time,
 			candidate_p_set* s_candidate,
 			 candidate_p_set* n_candidate,
-			 double s_weight, double n_weight,
+			 double s_weight, double n_weight, double lane_weight,
 			 planning_object::object_manager* objects,
+			 int desired_lane,
 			 trajectory& opt_trajectory	){
 
+    ProcessINI();
     
     // trajectory candidate from s and n candidate
-    trajectory_set candidates = SN2Trajectory( s_candidate, n_candidate, s_weight, n_weight );
+    trajectory_set candidates = SN2Trajectory( s_candidate, n_candidate, desired_lane, s_weight, n_weight, lane_weight );
     
     // optimal trajectory selection with collision check
     for( int i=0; i<10; i++){
@@ -51,7 +53,8 @@ bool optimal_selector::Optimization(
 
 trajectory_set optimal_selector::SN2Trajectory(	candidate_p_set* s_candidate,
 				candidate_p_set* n_candidate,
-				double s_weight, double n_weight ){
+				int desired_lane,
+				double s_weight, double n_weight, double lane_weight ){
     trajectory_set sn_candidates;
 
     // mix
@@ -60,7 +63,7 @@ trajectory_set optimal_selector::SN2Trajectory(	candidate_p_set* s_candidate,
 	for( int in = 0; in<n_candidate->size() ; in++ ){
 	    if( ( (*s_candidate)[is]->GetLaneIndex() == (*n_candidate)[in]->GetLaneIndex())
 	     || ( (*s_candidate)[is]->GetLaneIndex() == -1 ) ){
-		trajectory sn_candidate( idx_trj, (*s_candidate)[is], (*n_candidate)[in], s_weight, n_weight );
+		trajectory sn_candidate( idx_trj, (*s_candidate)[is], (*n_candidate)[in], desired_lane, s_weight, n_weight, lane_weight );
 
 		sn_candidates.push_back( sn_candidate );
 		idx_trj++;
@@ -93,7 +96,8 @@ void optimal_selector::print( trajectory* trj ){
     candidate* candi = trj->GetpTrajectoryS();
     double T = candi->GetT();
     state s = candi->GetState( T );
-    std::cout << "candidate(T/s/ds): ";
+    std::cout << "candidate(lane/T/s/ds): " << trj->GetLaneIdx();
+
     if( candi->GetManeuver() == FOLLOW){
 	std::cout << "F: ";
     }
@@ -105,3 +109,15 @@ void optimal_selector::print( trajectory* trj ){
 
 }
 
+void optimal_selector::ProcessINI(){
+    if( config_parser_.IsFileUpdated() == true ){
+	std::cout << "selection config is updated" << std::endl;
+	config_parser_.ParseConfig("selection", "collision_check_resol", collision_check_resol_ );
+	config_parser_.ParseConfig("selection", "collision_check_time", collision_check_time_ );
+	config_parser_.ParseConfig("selection", "vehicle_length", vehicle_length_ );
+	config_parser_.ParseConfig("selection", "vehicle_width", vehicle_width_ );
+	config_parser_.ParseConfig("selection", "curvature_check_t_resol", curvature_check_t_resol_ );
+	config_parser_.ParseConfig("selection", "curvature_check_T", curvature_check_T_ );
+	config_parser_.ParseConfig("selection", "curvature_limit", curvature_limit_ );
+    }
+}

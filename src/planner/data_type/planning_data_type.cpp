@@ -4,19 +4,21 @@
 trajectory::trajectory( 
 	int idx, 
 	candidate* s_candidate, candidate* n_candidate,
-	double s_weight, double n_weight	)
+	int desired_lane,
+	double s_weight, double n_weight, double lane_weight	)
 : idx_( idx ),
 lane_idx_( s_candidate->GetLaneIndex() ),
+desired_lane_idx_( desired_lane ),
 s_trajectory_( s_candidate ),
 n_trajectory_( n_candidate ){
     time_horizon_ = CalTimeHorizon( );
-    cost_ = CalCost( s_weight, n_weight );
+    cost_ = CalCost( s_weight, n_weight, lane_weight );
 }
 
-double trajectory::CalCost(double s_weight, double n_weight){
+double trajectory::CalCost(double s_weight, double n_weight, double lane_weight){
     return s_weight*s_trajectory_->GetCost()
 	+ n_weight*n_trajectory_->GetCost()
-	+ 20*abs(lane_idx_ - 2);
+	+ lane_weight*abs(lane_idx_ - desired_lane_idx_);
 }
 
 double trajectory::CalTimeHorizon( ){

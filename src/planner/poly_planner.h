@@ -9,6 +9,9 @@
 #include "module/optimal_selector.h"
 #include "module/object_manager.h"
 
+// uitls
+#include "utils/ini_parser/ini_parser.h"
+
 class poly_planner{
     public:
 	poly_planner();
@@ -42,14 +45,19 @@ class poly_planner{
 		double lookahead_time,
 		candidate_p_set* s_candidates,
 		candidate_p_set* n_candidates,
-		double s_weight, double n_weight,
+		double s_weight, double n_weight, double lane_weight,
 		planning_object::object_manager* objects,
+		int desired_lane,
 		trajectory& opt_trajectory);
 
 	void UpdateTrajectory( Map* map, trajectory trj, std::vector<double> ego_sn, std::vector<double> start_sn, double time_resol );
 	int FindPathNodeSN( std::vector<double> searching_sn );
 
+	void ProcessINI(void);
+
     private:
+	CINI_Parser	    config_parser;
+
 	start_selector	    start_selector_;
 	candidate_builder   candidate_builder_;
 	optimal_selector    optimal_selector_;
@@ -62,15 +70,19 @@ class poly_planner{
 	std::vector<cartesian_state> path_;
 
     private:
+	int desired_lane_ = -1;
+
 	// weight
 	double s_weight_ = 1.0;
 	double n_weight_ = 5.0;
+	double lane_weight_ = 100.0;
 
 	double weight_s_jerk_ = 10.0;
 	double weight_s_time_ = 10.0;
 	double weight_s_stop_ = 1.0;
 	double weight_s_follow_ = 1.0;
 	double weight_s_keep_spd_ =50.0;
+	double weight_s_violate_ = 100.0;
 
 	double weight_n_jerk_ = 1.0;
 	double weight_n_time_ = 1.0;

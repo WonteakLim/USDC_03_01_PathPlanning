@@ -86,7 +86,8 @@ class trajectory{
 	trajectory() {}
 	trajectory( int idx, 
 		candidate* s_candidate, candidate* n_candidate,
-	        double s_weight, double n_weight	);
+		int desired_lane,
+	        double s_weight, double n_weight, double lane_weight	);
 	~trajectory() {}
 
     private:
@@ -98,16 +99,18 @@ class trajectory{
 	double cost_ = 0.0;
 
 	int lane_idx_ = -1;
+	int desired_lane_idx_ = -1;
 
     private:
 	double	    CalTimeHorizon( );
-	double	    CalCost( double s_weight, double n_weight );
+	double	    CalCost( double s_weight, double n_weight, double lane_weight );
 
 	// =========================
 	// External interface
     public:
 	inline int		    GetIdx() { return idx_; }
 	inline double		    GetCost() { return cost_; }
+	inline double		    GetLaneIdx() { return lane_idx_; }
 	inline double		    GetTimeHorizon() { return time_horizon_; }
 	//inline double		    GetS_T() { return s_trajectory_->GetT(); }
 	sn_state		    GetNode(double t);

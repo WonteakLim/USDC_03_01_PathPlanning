@@ -9,6 +9,8 @@ poly_planner::poly_planner(){
     path_s_.clear();
     path_n_.clear();
     path_.clear();
+
+    bool is_config = config_parser.Init( "../src/planner/config/config_planner.ini");
 }
 
 void poly_planner::Run( Map* map,
@@ -17,28 +19,25 @@ void poly_planner::Run( Map* map,
 			double lookahead_time,
 			double desired_spd,
 			std::vector<std::vector<double>> objects	){
+    ProcessINI();
+
     planning_object::object_manager object_list( *map, objects );
 
     // ================
     // path planning
     // ================
-
-    // test
-    std::vector<double> ref_state_sn = {351, -1.3, 10.5555, 8, -1.5, 1.7866};
-    std::vector<double> con_xy = map->ToCartesianAllT( ref_state_sn );
-    std::vector<double> con_sn = map->ToFrenetAllT( con_xy );
-
     // start poisition
-    std::cout << "start position" << std::endl;
+    std::cout << "#####################################################" << std::endl;
+    std::cout << ">> start position" << std::endl;
     sn_state start_sn = SelStartState(map, path_dt, path_,
 					ego_pose, lookahead_time);
     std::vector<double> xy = map->ToCartesian( start_sn.s[0], start_sn.n[0] );
     std::cout << "start node (s/ds/dds): " << start_sn.s[0] << ", " << start_sn.s[1] << ", " << start_sn.s[2] << std::endl;
 
     // build candidates
-    std::cout << "build candidates" << std::endl;
+    std::cout << ">>>> build candidates" << std::endl;
     candidate_weight weight = { 
-	weight_s_jerk_, weight_s_time_, weight_s_stop_, weight_s_follow_, weight_s_keep_spd_, 
+	weight_s_jerk_, weight_s_time_, weight_s_stop_, weight_s_follow_, weight_s_keep_spd_, weight_s_violate_,
 	weight_n_jerk_, weight_n_time_, weight_n_terminal_};
     poly_candidate_set s_candidates_poly, n_candidates_poly;
     BuildCandidate(map, start_sn, s_candidates_poly, n_candidates_poly, weight, desired_spd, &object_list);
@@ -52,9 +51,9 @@ void poly_planner::Run( Map* map,
     }
 
     // select optimal trajectory
-    std::cout << "optimal selection" << std::endl;
+    std::cout << ">>>>>> optimal selection" << std::endl;
     trajectory opt_trajectory;
-    if( SelOptTrajectory( map, lookahead_time, &s_candidates, &n_candidates, s_weight_, n_weight_, &object_list, opt_trajectory ) == true){
+    if( SelOptTrajectory( map, lookahead_time, &s_candidates, &n_candidates, s_weight_, n_weight_, lane_weight_, &object_list, desired_lane_, opt_trajectory ) == true){
 	UpdateTrajectory( map, opt_trajectory, {ego_pose[5], ego_pose[6]}, {start_sn.s[0], start_sn.n[0]}, path_dt );
     }
 
@@ -97,13 +96,15 @@ bool poly_planner::SelOptTrajectory(
 	Map* map,
 	double lookahead_time,
 	candidate_p_set* s_candidates, candidate_p_set* n_candidates,
-	double s_weight, double n_weight,
+	double s_weight, double n_weight, double lane_weight,
 	planning_object::object_manager* objects,
+	int desired_lane,
 	trajectory& opt_trajectory){
 
     return optimal_selector_.Optimization( map, lookahead_time, s_candidates, n_candidates,
-	    s_weight, n_weight,
+	    s_weight, n_weight, lane_weight,
 	    objects,
+	    desired_lane,
 	    opt_trajectory);
 }
 
@@ -194,6 +195,24 @@ int  poly_planner::FindPathNodeSN( std::vector<double> searching_sn){
 	}	
     }
     return min_idx;   
+}
+
+void poly_planner::ProcessINI(){
+    if( config_parser.IsFileUpdated() == true ){
+	config_parser.ParseConfig( "planning", "desired_lane", desired_lane_ );
+	config_parser.ParseConfig( "planning", "s_weight", s_weight_ );
+	config_parser.ParseConfig( "planning", "n_weight", n_weight_ );
+	config_parser.ParseConfig( "planning", "lane_weight", lane_weight_ );
+	config_parser.ParseConfig( "planning", "weight_s_jerk", weight_s_jerk_ );
+	config_parser.ParseConfig( "planning", "weight_s_time", weight_s_time_ );
+	config_parser.ParseConfig( "planning", "weight_s_stop", weight_s_stop_ );
+	config_parser.ParseConfig( "planning", "weight_s_follow", weight_s_follow_ );
+	config_parser.ParseConfig( "planning", "weight_s_keep_spd", weight_s_keep_spd_ );
+	config_parser.ParseConfig( "planning", "weight_s_violate", weight_s_violate_ );
+	config_parser.ParseConfig( "planning", "weight_n_jerk", weight_n_jerk_ );
+	config_parser.ParseConfig( "planning", "weight_n_time", weight_n_time_ );
+	config_parser.ParseConfig( "planning", "weight_n_terminal", weight_n_terminal_ );
+    }
 }
 
 std::vector<double> poly_planner::GetTrjX(){

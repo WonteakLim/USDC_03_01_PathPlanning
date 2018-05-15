@@ -25,6 +25,7 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 add_executable(path_planning 
 	${sources}
 	src/planner/utils/spline.cpp
+	src/planner/utils/ini_parser/ini_parser.cpp
 	src/planner/data_type/poly.cpp
 	src/planner/data_type/planning_data_type.cpp
 	src/planner/data_type/poly_candidate.cpp

@@ -75,12 +75,18 @@ state poly_candidate::GetState( double t ){
     }
 }
 
-void poly_candidate::CalTotalCost( double w_jerk, double w_time, double w_terminal ){
+void poly_candidate::CalTotalCost( double w_jerk, double w_time, double w_terminal, double w_violate ){
     weight_jerk_ = w_jerk;
     weight_con_time_ = w_time;
     weight_terminal_ = w_terminal;
+    weight_violate_ = w_violate;
+
+    state state_T = GetState( continuation_time_ );
+    double violate_s = state_T[0] - violate_dist_;
+    if( violate_s < 0 ) violate_s = 0.0;    
 
     cost_ = w_jerk * GetIntegJerk() / continuation_time_ + 
 	w_time * continuation_time_ + 
-	w_terminal * 0.5*( end_state_[0] - desired_state_[0])*( end_state_[0] - desired_state_[0]);
+	w_terminal * 0.5*( end_state_[0] - desired_state_[0])*( end_state_[0] - desired_state_[0]) +
+	w_violate * violate_s;
 }

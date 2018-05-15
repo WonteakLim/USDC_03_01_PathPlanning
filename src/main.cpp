@@ -257,11 +257,36 @@ int main() {
 
           	// TODO: define a path made up of (x,y) points that the car will visit sequentially every .02 seconds
 
+		std::vector<double> sample_x, sample_y, sample_s, sample_dx, sample_dy;
+		double s_start = car_s - 100;
+		double s_end = car_s + 300;
+		double s_resol = 10.0;
+		double s_num = (int)((s_end-s_start)/s_resol);
+		for( int i=0 ; i<s_num; i++){
+		    double s = i*s_resol + s_start;
+		    std::vector<double> xy = map.ToCartesian( s, 0.0 );
+		    double dx = 0.0;
+		    double dy = 0.0;
+		    if( i>0 ){
+			dx = xy[0] - sample_x[i-1];
+			dy = xy[1] - sample_y[i-1];
+		    }
+
+		    sample_x.push_back( xy[0] );
+		    sample_y.push_back( xy[1] );
+		    sample_s.push_back( s );
+		    sample_dx.push_back( dx );
+		    sample_dy.push_back( dy );
+		}
+
+		Map sampled_map( sample_x, sample_y, sample_s, sample_dx, sample_dy );
+
+
 
 		double desired_spd = 21; // 50 mph
-		planner.Run(&map, 0.02,
+		planner.Run(&sampled_map, 0.02,
 			{car_x, car_y, car_yaw, car_speed, 0.0, car_s, car_d},
-			0.6, desired_spd, sensor_fusion);
+			0.4, desired_spd, sensor_fusion);
 
           	msgJson["next_x"] = planner.GetTrjX();
           	msgJson["next_y"] = planner.GetTrjY();

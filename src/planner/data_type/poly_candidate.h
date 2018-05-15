@@ -25,6 +25,7 @@ class poly_candidate : public candidate{
 	state end_state_;
 	state desired_state_;
 	double continuation_time_;
+	double violate_dist_ = 0.0;
 
     private:
 	polynomial poly_;
@@ -34,9 +35,11 @@ class poly_candidate : public candidate{
 	double weight_jerk_ = 0.0;
 	double weight_con_time_ = 0.0;
 	double weight_terminal_ = 0.0;
+	double weight_violate_ = 0.0;
 
     public:
-	void CalTotalCost( double w_jerk, double w_time, double w_terminal );
+	inline void SetViolateDist(double dist) { violate_dist_ = dist; }
+	void CalTotalCost( double w_jerk, double w_time, double w_terminal, double w_violate = 0.0 );
 };
 
 typedef std::vector<poly_candidate> poly_candidate_set;
