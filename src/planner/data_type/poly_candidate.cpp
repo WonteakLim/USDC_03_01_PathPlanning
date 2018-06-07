@@ -26,19 +26,19 @@ poly_candidate::~poly_candidate(){
 }
 
 double poly_candidate::GetMaxSpd(){
-    return 0.0;
+    return poly_max_speed( poly_, 0.0, continuation_time_ );;
 }
 
 double poly_candidate::GetMaxAcc(){
     if( max_acc_ == DEFAULT_ACC ){
-	max_acc_ = poly_max_acc_signed( poly_, 0.0, continuation_time_);
+	max_acc_ = poly_max_acceleration( poly_, 0.0, continuation_time_);
     }
     return max_acc_;
 }
 
 double poly_candidate::GetMinAcc(){
     if( min_acc_ == DEFAULT_ACC ){
-	min_acc_ = poly_min_acc_signed( poly_, 0.0, continuation_time_ );
+	min_acc_ = poly_min_acceleration( poly_, 0.0, continuation_time_ );
     }
     return min_acc_;
 }

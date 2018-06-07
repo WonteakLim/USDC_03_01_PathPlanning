@@ -205,12 +205,25 @@ int main() {
   	map_waypoints_dx.push_back(d_x);
   	map_waypoints_dy.push_back(d_y);
   }
+  int points_size = map_waypoints_x.size();
+
+  map_waypoints_x.push_back( map_waypoints_x[0] );
+  map_waypoints_y.push_back( map_waypoints_y[0] );
+  map_waypoints_s.push_back( max_s );
+  map_waypoints_dx.push_back( map_waypoints_dx[0]);
+  map_waypoints_dy.push_back( map_waypoints_dy[0]);
+  
   static Map map( map_waypoints_x,
 		    map_waypoints_y,
 		    map_waypoints_s,
 		    map_waypoints_dx,
 		    map_waypoints_dy );
 
+
+//  std::vector<double> xy_s = map.ToCartesian( 10.0, 0.0 );
+//  std::vector<double> xy_f = map.ToCartesian( max_s-10.0, 0.0 );
+//  std::cout << "map(s): " << xy_s[0] << "/" << xy_s[1] << std::endl;
+//  std::cout << "map(f): " << xy_f[0] << "/" << xy_f[1] << std::endl;
 
   h.onMessage([&map_waypoints_x,&map_waypoints_y,&map_waypoints_s,&map_waypoints_dx,&map_waypoints_dy](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,
                      uWS::OpCode opCode) {
@@ -284,7 +297,7 @@ int main() {
 
 
 		double desired_spd = 21; // 50 mph
-		planner.Run(&sampled_map, 0.02,
+		planner.Run(&map, 0.02,
 			{car_x, car_y, car_yaw, car_speed, 0.0, car_s, car_d},
 			0.4, desired_spd, sensor_fusion);
 

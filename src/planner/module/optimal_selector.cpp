@@ -22,7 +22,9 @@ bool optimal_selector::Optimization(
 			 trajectory& opt_trajectory	){
 
     ProcessINI();
-    
+   
+    if( (s_candidate->size() ==0 ) || ( n_candidate->size()==0) ) return false;
+
     // trajectory candidate from s and n candidate
     trajectory_set candidates = SN2Trajectory( s_candidate, n_candidate, desired_lane, s_weight, n_weight, lane_weight );
     

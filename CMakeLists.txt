@@ -26,6 +26,19 @@ add_executable(path_planning
 	${sources}
 	src/planner/utils/spline.cpp
 	src/planner/utils/ini_parser/ini_parser.cpp
+	src/planner/utils/alglib/alglibinternal.cpp
+	src/planner/utils/alglib/alglibmisc.cpp
+	src/planner/utils/alglib/ap.cpp
+	src/planner/utils/alglib/dataanalysis.cpp
+	src/planner/utils/alglib/diffequations.cpp
+	src/planner/utils/alglib/fasttransforms.cpp
+	src/planner/utils/alglib/integration.cpp
+	src/planner/utils/alglib/interpolation.cpp
+	src/planner/utils/alglib/linalg.cpp
+	src/planner/utils/alglib/optimization.cpp
+	src/planner/utils/alglib/solvers.cpp
+	src/planner/utils/alglib/specialfunctions.cpp
+	src/planner/utils/alglib/statistics.cpp
 	src/planner/data_type/poly.cpp
 	src/planner/data_type/planning_data_type.cpp
 	src/planner/data_type/poly_candidate.cpp

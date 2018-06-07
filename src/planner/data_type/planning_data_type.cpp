@@ -18,7 +18,8 @@ n_trajectory_( n_candidate ){
 double trajectory::CalCost(double s_weight, double n_weight, double lane_weight){
     return s_weight*s_trajectory_->GetCost()
 	+ n_weight*n_trajectory_->GetCost()
-	+ lane_weight*abs(lane_idx_ - desired_lane_idx_);
+	+ lane_weight*abs(lane_idx_ - desired_lane_idx_)
+	+ 5000.0 * ( 21 - ( (s_trajectory_->GetState(1.0))[0]- (s_trajectory_->GetState(0.0))[0])) / 21;
 }
 
 double trajectory::CalTimeHorizon( ){

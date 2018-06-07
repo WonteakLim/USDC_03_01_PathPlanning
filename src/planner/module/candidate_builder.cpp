@@ -205,6 +205,7 @@ poly_candidate_set candidate_builder::FilterFeasibleS(poly_candidate_set* varian
 	if( ( (*variants)[i].GetMaxAcc() < ACC_LIMIT_S )
 		&& ( (*variants)[i].GetMinAcc() > DCC_LIMIT_S) 
 		&& ( (*variants)[i].GetMaxJerk() < JERK_LIMIT_S )
+		&& ( (*variants)[i].GetMaxSpd() < 21 )
 		    ){
 
 		feasible_set.push_back( (*variants)[i] );

@@ -625,7 +625,7 @@ std::vector<double> Map::ToCartesianAllT( std::vector<double> state_frenet ){
     double dn_s = dn / ds;
     double ddn_s = (ddn-dds*dn_s) / (ds*ds);
     
-    std::vector<double> state_s = {state_frenet[0], state_frenet[1], state_frenet[2],
+    std::vector<double> state_s = {FrenetSCycle(state_frenet[0]), state_frenet[1], state_frenet[2],
 				state_frenet[3], dn_s, ddn_s};
     return ToCartesianAllS( state_s );
 }

@@ -101,6 +101,8 @@ class trajectory{
 	int lane_idx_ = -1;
 	int desired_lane_idx_ = -1;
 
+	double speed_limit = 21.0;
+
     private:
 	double	    CalTimeHorizon( );
 	double	    CalCost( double s_weight, double n_weight, double lane_weight );

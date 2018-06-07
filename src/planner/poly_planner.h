@@ -74,8 +74,8 @@ class poly_planner{
 
 	// weight
 	double s_weight_ = 1.0;
-	double n_weight_ = 5.0;
-	double lane_weight_ = 100.0;
+	double n_weight_ = 1.0;
+	double lane_weight_ = 0.0;
 
 	double weight_s_jerk_ = 10.0;
 	double weight_s_time_ = 10.0;
